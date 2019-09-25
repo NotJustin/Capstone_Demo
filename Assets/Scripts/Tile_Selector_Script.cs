@@ -9,6 +9,7 @@ public class Tile_Selector_Script : MonoBehaviour
 
     public GameObject tileMapObj;
     Tilemap tileMap;
+    public LinkedList<TileStruct>[] world;
 
     private SpriteRenderer spriteRenderer;
     public Sprite red_cursor;
@@ -25,6 +26,23 @@ public class Tile_Selector_Script : MonoBehaviour
     void Start()
     {
         tileMap = tileMapObj.GetComponent<Tilemap>();
+        world = tileMapObj.GetComponent<TileMap>().world;
+
+        //LinkedListNode<TileStruct> ptr;
+        //Debug.Log(world.Length);
+        /*for (int i = 0; i < world.Length; i++)
+        {
+            if (world[i] != null)
+            {
+                ptr = world[i].First;
+                //Debug.Log("Floor found at: " + ptr.Value.position);
+                while (ptr.Next != null)
+                {
+                    ptr = ptr.Next;
+                    //Debug.Log("Neighbor " + i + " at position: " + ptr.Value.position);
+                }
+            }
+        }*/
 
         spriteRenderer = cursor.GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = yellow_cursor;
@@ -41,9 +59,12 @@ public class Tile_Selector_Script : MonoBehaviour
         if (Input.GetMouseButton(0))
         {
             Vector3Int coordinate = tileMap.WorldToCell(cursor.transform.position);
-            Debug.Log(coordinate);
+            //Debug.Log(coordinate);
             TileBase tile = tileMap.GetTile(coordinate);
-            CheckTile(tile);
+            if (CheckTile(tile))
+            {
+                player.transform.position = cursor.transform.position;
+            }
         }
         else
         {
@@ -68,13 +89,10 @@ public class Tile_Selector_Script : MonoBehaviour
 
     public bool CheckTile(TileBase tile)
     {
-        if (tile != null && InRange())
+        if (tile != null && tile.name.Contains("floor") && InRange())
         {
-            if (tile.name.Contains("floor"))
-            {
-                spriteRenderer.sprite = green_cursor;
-                return true;
-            }
+            spriteRenderer.sprite = green_cursor;
+            return true;
         }
         spriteRenderer.sprite = red_cursor;
         return false;
@@ -86,18 +104,19 @@ public class Tile_Selector_Script : MonoBehaviour
         {
             return false;
         }
-        if (
-            cursor.transform.position.x > (player.transform.position.x + playerData.moves) ||
-            cursor.transform.position.x < (player.transform.position.x - playerData.moves) ||
-            cursor.transform.position.y > (player.transform.position.y + playerData.moves) ||
-            cursor.transform.position.y < (player.transform.position.y - playerData.moves))
+
+        Vector3Int playerCell = tileMap.WorldToCell(player.transform.position);
+        for (int i = 0; i < world.Length; i++)
         {
-            return false;
+            if (world[i] != null && playerCell == world[i].First.Value.position)
+            {
+                Debug.Log("found player tile");
+                break;
+            }
         }
-        else
-        {
-            return true;
-        }
+
+
+        return true;
     }
 
 

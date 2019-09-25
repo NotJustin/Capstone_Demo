@@ -17,8 +17,6 @@ public struct TileStruct
 
 public class TileMap : MonoBehaviour
 {
-    //public int mapWidth;
-    //public int mapHeight;
     public GameObject cursor;
     public LinkedList<TileStruct>[] world;
     Tilemap tileMap;
@@ -26,7 +24,7 @@ public class TileMap : MonoBehaviour
     Vector3Int size;
     int zAxis = 0;
 
-    void Start()
+    void Awake()
     {
         tileMap = GetComponent<Tilemap>();
         tileMap.CompressBounds();
@@ -37,13 +35,12 @@ public class TileMap : MonoBehaviour
         {
             for (int y = 0; y < cellBounds.size.y; y++)
             {
-                Vector3Int coordinate = new Vector3Int(x, y, zAxis);
-                TileBase tile = tileMap.GetTile(coordinate);
-                Debug.Log(tile);
+                Vector3 coordinateWorld = new Vector3(x, y, zAxis);
+                Vector3Int coordinateCell = tileMap.WorldToCell(coordinateWorld);
+                TileBase tile = tileMap.GetTile(coordinateCell);
                 if (CheckTile(tile))
                 {
-                    Debug.Log("Found tile at: " + coordinate);
-                    TileStruct newStruct = new TileStruct(tile.name, coordinate);
+                    TileStruct newStruct = new TileStruct(tile.name, coordinateCell);
                     world[tileCount] = new LinkedList<TileStruct>();
                     world[tileCount].AddLast(newStruct);
                     AddNeighbors(tileCount, x, y);
@@ -57,22 +54,21 @@ public class TileMap : MonoBehaviour
             }
         }
 
-        LinkedListNode<TileStruct> ptr;
+        /*LinkedListNode<TileStruct> ptr;
         Debug.Log(world.Length);
         for (int i = 0; i < world.Length; i++)
         {
-            Debug.Log("i = " + i);
             if (world[i] != null)
             {
-                Debug.Log("Valid start found at: " + i);
                 ptr = world[i].First;
-                while (ptr != null)
+                Debug.Log("Floor found at: " + ptr.Value.position);
+                while (ptr.Next != null)
                 {
-                    Debug.Log("List: " + i + " tile position: " + ptr.Value.position);
                     ptr = ptr.Next;
+                    Debug.Log("Neighbor " + i + " at position: " + ptr.Value.position);
                 }
             }
-        }
+        }*/
     }
 
     public bool CheckTile(TileBase tile)
