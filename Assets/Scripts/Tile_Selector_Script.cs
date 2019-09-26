@@ -28,22 +28,6 @@ public class Tile_Selector_Script : MonoBehaviour
         tileMap = tileMapObj.GetComponent<Tilemap>();
         world = tileMapObj.GetComponent<TileMap>().world;
 
-        //LinkedListNode<TileStruct> ptr;
-        //Debug.Log(world.Length);
-        /*for (int i = 0; i < world.Length; i++)
-        {
-            if (world[i] != null)
-            {
-                ptr = world[i].First;
-                //Debug.Log("Floor found at: " + ptr.Value.position);
-                while (ptr.Next != null)
-                {
-                    ptr = ptr.Next;
-                    //Debug.Log("Neighbor " + i + " at position: " + ptr.Value.position);
-                }
-            }
-        }*/
-
         spriteRenderer = cursor.GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = yellow_cursor;
 
@@ -59,7 +43,6 @@ public class Tile_Selector_Script : MonoBehaviour
         if (Input.GetMouseButton(0))
         {
             Vector3Int coordinate = tileMap.WorldToCell(cursor.transform.position);
-            //Debug.Log(coordinate);
             TileBase tile = tileMap.GetTile(coordinate);
             if (CheckTile(tile))
             {
@@ -106,19 +89,96 @@ public class Tile_Selector_Script : MonoBehaviour
         }
 
         Vector3Int playerCell = tileMap.WorldToCell(player.transform.position);
-        for (int i = 0; i < world.Length; i++)
-        {
-            if (world[i] != null && playerCell == world[i].First.Value.position)
-            {
-                Debug.Log("found player tile");
-                break;
-            }
-        }
+        Vector3Int goalCell = tileMap.WorldToCell(cursor.transform.position);
 
-
-        return true;
+        return search(playerCell, goalCell);
     }
 
+    public bool search(Vector3Int start, Vector3Int goal)
+    {
+        int playerCellIndex = -1;
 
+        LinkedList<LinkedListNode<TileStruct>> ptr;
+
+        for (int i = 0; i < world.Length; i++)
+        {
+            ptr = world[i];
+            if (ptr != null && playerCell == ptr.First.Value.position)
+            {
+                
+            }
+        }
+    }
+
+    /*public bool search(int index, Vector3 goal)
+    {
+        Vector3Int cursorCell = tileMap.WorldToCell(cursor.transform.position);
+
+        LinkedListNode<TileStruct> ptr;
+
+        ptr = world[index].First;
+        Debug.Log(ptr.Value.position + " " + index);
+        int steps = checkNeighbors(0, ptr, cursorCell);
+        if (steps > 0)
+        {
+            Debug.Log(steps);
+            return true;
+        }
+        else
+        {
+           return search(ptr.Next
+        }
+        return false;
+    }*/
+
+    public bool search(int index, Vector3 goal)
+    {
+
+    }
+
+    /*public bool checkNeighbors(LinkedListNode<TileStruct> ptr, Vector3Int goalCell)
+    {
+        while (ptr.Next != null)
+        {
+            ptr = ptr.Next;
+            if (ptr.Value.position == goalCell)
+            {
+                return true;
+            }
+        }
+        return false;
+    }*/
+
+    /*public int checkNeighbors(int steps, LinkedListNode<TileStruct> ptr, Vector3Int goalCell)
+    {
+        Queue<LinkedListNode<TileStruct>> Q = new Queue<LinkedListNode<TileStruct>>();
+        HashSet<LinkedListNode<TileStruct>> S = new HashSet<LinkedListNode<TileStruct>>();
+        Q.Enqueue(ptr);
+        S.Add(ptr);
+        while (Q.Count > 0)
+        {
+            LinkedListNode<TileStruct> e = Q.Dequeue();
+            
+            //Debug.Log("Hi sir, e is " + e.Value.position + " Number of steps taken: " + steps);
+            steps++;
+            if (e.Value.position == goalCell)
+            {
+                return steps;
+            }
+
+            if (ptr.Next != null)
+            {
+                ptr = ptr.Next;
+                if (!S.Contains(ptr))
+                {
+                    Q.Enqueue(ptr);
+                    S.Add(ptr);
+                }
+            }
+
+        }
+        //Debug.Log("steps count: " + steps);
+        return steps;
+    }*/
 
 }
