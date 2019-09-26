@@ -18,7 +18,8 @@ public struct TileStruct
 public class TileMap : MonoBehaviour
 {
     public GameObject cursor;
-    public LinkedList<TileStruct>[] world;
+    //public LinkedList<TileStruct>[] world;
+    public int[,] world;
     Tilemap tileMap;
     BoundsInt cellBounds;
     Vector3Int size;
@@ -29,8 +30,9 @@ public class TileMap : MonoBehaviour
         tileMap = GetComponent<Tilemap>();
         tileMap.CompressBounds();
         cellBounds = tileMap.cellBounds;
-        world = new LinkedList<TileStruct>[tileMap.cellBounds.size.x * tileMap.cellBounds.size.y];
-        int tileCount = 0;
+        //world = new LinkedList<TileStruct>[tileMap.cellBounds.size.x * tileMap.cellBounds.size.y];
+        world = new int[tileMap.cellBounds.size.x, tileMap.cellBounds.size.y];
+        int count = 0;
         for (int x = 0; x < cellBounds.size.x; x++)
         {
             for (int y = 0; y < cellBounds.size.y; y++)
@@ -40,17 +42,20 @@ public class TileMap : MonoBehaviour
                 TileBase tile = tileMap.GetTile(coordinateCell);
                 if (CheckTile(tile))
                 {
-                    TileStruct newStruct = new TileStruct(tile.name, coordinateCell);
+                    world[x,y] = count;
+                    /*TileStruct newStruct = new TileStruct(tile.name, coordinateCell);
                     world[tileCount] = new LinkedList<TileStruct>();
                     world[tileCount].AddLast(newStruct);
-                    AddNeighbors(tileCount, x, y);
-                    ++tileCount;
+                    AddNeighbors(tileCount, x, y);*/
+
                 }
                 else
                 {
-                    world[tileCount] = null;
-                    ++tileCount;
+                    world[x,y] = -1;
+                    //world[tileCount] = null;
+                    //++tileCount;
                 }
+                count++;
             }
         }
 
@@ -80,7 +85,7 @@ public class TileMap : MonoBehaviour
         return false;
     }
 
-    public void AddNeighbors(int tileCount, int x, int y)
+    /*public void AddNeighbors(int tileCount, int x, int y)
     {
         Vector3Int leftCoordinate = new Vector3Int(x - 1, y, zAxis);
         Vector3Int upCoordinate = new Vector3Int(x, y - 1, zAxis);
@@ -111,5 +116,5 @@ public class TileMap : MonoBehaviour
             TileStruct downStruct = new TileStruct(tileDown.name, downCoordinate);
             world[tileCount].AddLast(downStruct);
         }
-    }
+    }*/
 }

@@ -9,7 +9,8 @@ public class Tile_Selector_Script : MonoBehaviour
 
     public GameObject tileMapObj;
     Tilemap tileMap;
-    public LinkedList<TileStruct>[] world;
+    //public LinkedList<TileStruct>[] world;
+    public int[,] world;
 
     private SpriteRenderer spriteRenderer;
     public Sprite red_cursor;
@@ -27,6 +28,14 @@ public class Tile_Selector_Script : MonoBehaviour
     {
         tileMap = tileMapObj.GetComponent<Tilemap>();
         world = tileMapObj.GetComponent<TileMap>().world;
+
+        for (int x = 0; x < world.GetLength(0); x++)
+        {
+            for (int y = 0; y < world.GetLength(1); y++)
+            {
+                Debug.Log(world[x,y]);
+            }
+        }
 
         spriteRenderer = cursor.GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = yellow_cursor;
@@ -91,10 +100,11 @@ public class Tile_Selector_Script : MonoBehaviour
         Vector3Int playerCell = tileMap.WorldToCell(player.transform.position);
         Vector3Int goalCell = tileMap.WorldToCell(cursor.transform.position);
 
-        return search(playerCell, goalCell);
+        //return search(playerCell, goalCell);
+        return true;
     }
 
-    public bool search(Vector3Int start, Vector3Int goal)
+    /*public bool search(Vector3Int start, Vector3Int goal)
     {
         int playerCellIndex = -1;
 
@@ -105,10 +115,10 @@ public class Tile_Selector_Script : MonoBehaviour
             ptr = world[i];
             if (ptr != null && playerCell == ptr.First.Value.position)
             {
-                
+            
             }
         }
-    }
+    }*/
 
     /*public bool search(int index, Vector3 goal)
     {
@@ -131,10 +141,10 @@ public class Tile_Selector_Script : MonoBehaviour
         return false;
     }*/
 
-    public bool search(int index, Vector3 goal)
+    /*public bool search(int index, Vector3 goal)
     {
 
-    }
+    }*/
 
     /*public bool checkNeighbors(LinkedListNode<TileStruct> ptr, Vector3Int goalCell)
     {
