@@ -3,22 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public struct TileStruct
-{
-    public string name;
-    public Vector3Int position;
-
-    public TileStruct(string Name, Vector3Int Position)
-    {
-        name = Name;
-        position = Position;
-    }
-}
-
 public class TileMap : MonoBehaviour
 {
     public GameObject cursor;
-    //public LinkedList<TileStruct>[] world;
     public int[,] world;
     Tilemap tileMap;
     BoundsInt cellBounds;
@@ -30,50 +17,23 @@ public class TileMap : MonoBehaviour
         tileMap = GetComponent<Tilemap>();
         tileMap.CompressBounds();
         cellBounds = tileMap.cellBounds;
-        //world = new LinkedList<TileStruct>[tileMap.cellBounds.size.x * tileMap.cellBounds.size.y];
         world = new int[tileMap.cellBounds.size.x, tileMap.cellBounds.size.y];
-        int count = 0;
         for (int x = 0; x < cellBounds.size.x; x++)
         {
             for (int y = 0; y < cellBounds.size.y; y++)
             {
-                Vector3 coordinateWorld = new Vector3(x, y, zAxis);
-                Vector3Int coordinateCell = tileMap.WorldToCell(coordinateWorld);
-                TileBase tile = tileMap.GetTile(coordinateCell);
+                Vector3Int position = new Vector3Int(x, y, zAxis);
+                TileBase tile = tileMap.GetTile(position);
                 if (CheckTile(tile))
                 {
-                    world[x,y] = count;
-                    /*TileStruct newStruct = new TileStruct(tile.name, coordinateCell);
-                    world[tileCount] = new LinkedList<TileStruct>();
-                    world[tileCount].AddLast(newStruct);
-                    AddNeighbors(tileCount, x, y);*/
-
+                    world[x, y] = 0;
                 }
                 else
                 {
                     world[x,y] = -1;
-                    //world[tileCount] = null;
-                    //++tileCount;
                 }
-                count++;
             }
         }
-
-        /*LinkedListNode<TileStruct> ptr;
-        Debug.Log(world.Length);
-        for (int i = 0; i < world.Length; i++)
-        {
-            if (world[i] != null)
-            {
-                ptr = world[i].First;
-                Debug.Log("Floor found at: " + ptr.Value.position);
-                while (ptr.Next != null)
-                {
-                    ptr = ptr.Next;
-                    Debug.Log("Neighbor " + i + " at position: " + ptr.Value.position);
-                }
-            }
-        }*/
     }
 
     public bool CheckTile(TileBase tile)
@@ -85,7 +45,7 @@ public class TileMap : MonoBehaviour
         return false;
     }
 
-    /*public void AddNeighbors(int tileCount, int x, int y)
+    /*public void AddNeighbors(TileStruct tile, int x, int y)
     {
         Vector3Int leftCoordinate = new Vector3Int(x - 1, y, zAxis);
         Vector3Int upCoordinate = new Vector3Int(x, y - 1, zAxis);

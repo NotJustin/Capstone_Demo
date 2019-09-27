@@ -9,7 +9,6 @@ public class Tile_Selector_Script : MonoBehaviour
 
     public GameObject tileMapObj;
     Tilemap tileMap;
-    //public LinkedList<TileStruct>[] world;
     public int[,] world;
 
     private SpriteRenderer spriteRenderer;
@@ -19,7 +18,7 @@ public class Tile_Selector_Script : MonoBehaviour
 
     public GameObject player;
 
-    PlayerMove playerData;
+    Player playerData;
 
     Vector3 mousePosition;
     float zAxis = 10;
@@ -29,18 +28,17 @@ public class Tile_Selector_Script : MonoBehaviour
         tileMap = tileMapObj.GetComponent<Tilemap>();
         world = tileMapObj.GetComponent<TileMap>().world;
 
-        for (int x = 0; x < world.GetLength(0); x++)
+        /*for (int x = 0; x < world.GetLength(0); x++)
         {
             for (int y = 0; y < world.GetLength(1); y++)
             {
                 Debug.Log(world[x,y]);
             }
-        }
-
+        }*/
         spriteRenderer = cursor.GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = yellow_cursor;
 
-        playerData = player.GetComponent<PlayerMove>();
+        playerData = player.GetComponent<Player>();
     }
 
     void Update()
@@ -53,9 +51,14 @@ public class Tile_Selector_Script : MonoBehaviour
         {
             Vector3Int coordinate = tileMap.WorldToCell(cursor.transform.position);
             TileBase tile = tileMap.GetTile(coordinate);
-            if (CheckTile(tile))
+            if (CheckTile(tile) && InRange())
             {
+                spriteRenderer.sprite = green_cursor;
                 player.transform.position = cursor.transform.position;
+            }
+            else
+            {
+                spriteRenderer.sprite = red_cursor;
             }
         }
         else
@@ -81,12 +84,10 @@ public class Tile_Selector_Script : MonoBehaviour
 
     public bool CheckTile(TileBase tile)
     {
-        if (tile != null && tile.name.Contains("floor") && InRange())
+        if (tile != null && tile.name.Contains("floor"))
         {
-            spriteRenderer.sprite = green_cursor;
             return true;
         }
-        spriteRenderer.sprite = red_cursor;
         return false;
     }
 
@@ -100,25 +101,63 @@ public class Tile_Selector_Script : MonoBehaviour
         Vector3Int playerCell = tileMap.WorldToCell(player.transform.position);
         Vector3Int goalCell = tileMap.WorldToCell(cursor.transform.position);
 
-        //return search(playerCell, goalCell);
-        return true;
+        Queue<Vector3Int> previousTileList = new Queue<Vector3Int>();
+        HashSet<Vector3Int> viewedTiles = new HashSet<Vector3Int>();
+        return search(previousTileList, viewedTiles, playerCell, goalCell, playerData.moves);
     }
 
-    /*public bool search(Vector3Int start, Vector3Int goal)
+    public bool search(Queue<Vector3Int> previousTileList, HashSet<Vector3Int> viewedTiles, Vector3Int start, Vector3Int goal, int moves)
     {
-        int playerCellIndex = -1;
-
-        LinkedList<LinkedListNode<TileStruct>> ptr;
-
-        for (int i = 0; i < world.Length; i++)
+        if (!CheckTile(tileMap.GetTile(start)) || moves == 0)
         {
-            ptr = world[i];
-            if (ptr != null && playerCell == ptr.First.Value.position)
-            {
-            
-            }
+            return false;
         }
-    }*/
+        moves--;
+        previousTileList.Enqueue(start);
+        viewedTiles.Add(start);
+        Vector3Int leftTile = new Vector3Int(start.x - 1, start.y, start.z);
+        Vector3Int rightTile = new Vector3Int(start.x + 1, start.y, start.z);
+        Vector3Int upTile = new Vector3Int(start.x, start.y + 1, start.z);
+        Vector3Int downTile = new Vector3Int(start.x, start.y - 1, start.z);
+        if (CheckTile(tileMap.GetTile(leftTile)) && !viewedTiles.Contains(leftTile) && (compareTiles(leftTile, goal)))
+        {
+            Debug.Log("it is left");
+            return true;
+        }
+        if (CheckTile(tileMap.GetTile(rightTile)) && !viewedTiles.Contains(rightTile) && (compareTiles(rightTile, goal)))
+        {
+            Debug.Log("it is right");
+            return true;
+        }
+        if (CheckTile(tileMap.GetTile(upTile)) && !viewedTiles.Contains(upTile) && (compareTiles(upTile, goal)))
+        {
+            Debug.Log("it is up");
+            return true;
+        }
+        if (CheckTile(tileMap.GetTile(downTile)) && !viewedTiles.Contains(downTile) && (compareTiles(downTile, goal)))
+        {
+            Debug.Log("it is down");
+            return true;
+        }
+        if (search(previousTileList, viewedTiles, leftTile, goal, moves) || 
+            search(previousTileList, viewedTiles, rightTile, goal, moves) || 
+            search(previousTileList, viewedTiles, upTile, goal, moves) ||
+            search(previousTileList, viewedTiles, downTile, goal, moves))
+        {
+            return true;
+        }
+        previousTileList.Dequeue();
+        return false;
+    }
+
+    public bool compareTiles(Vector3Int start, Vector3Int goal)
+    {
+        if (start.x >= 0 && start.x < world.GetLength(0) && start.y >= 0 && start.y < world.GetLength(1) && start.x == goal.x && start.y == goal.y)
+        {
+            return true;
+        }
+        return false;
+    }
 
     /*public bool search(int index, Vector3 goal)
     {
