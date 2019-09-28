@@ -41,18 +41,26 @@ public class Tile_Selector_Script : MonoBehaviour
         playerData = player.GetComponent<Player>();
     }
 
+    Queue<Vector3Int> previousTileList = new Queue<Vector3Int>();
+
     void Update()
     {
         mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousePosition.z = zAxis;
         cursor.transform.position = new Vector3((RoundOffset(mousePosition.x)), (RoundOffset(mousePosition.y)), zAxis);
 
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButtonDown(0))
         {
             Vector3Int coordinate = tileMap.WorldToCell(cursor.transform.position);
             TileBase tile = tileMap.GetTile(coordinate);
             if (CheckTile(tile) && InRange())
             {
+                while(previousTileList.Count > 0)
+                {
+                    Vector3Int pos = previousTileList.Dequeue();
+                    tileMap.SetTileFlags(pos, TileFlags.None);
+                    tileMap.SetColor(pos, Color.red);
+                }
                 spriteRenderer.sprite = green_cursor;
                 player.transform.position = cursor.transform.position;
             }
@@ -101,7 +109,7 @@ public class Tile_Selector_Script : MonoBehaviour
         Vector3Int playerCell = tileMap.WorldToCell(player.transform.position);
         Vector3Int goalCell = tileMap.WorldToCell(cursor.transform.position);
 
-        Queue<Vector3Int> previousTileList = new Queue<Vector3Int>();
+        //Queue<Vector3Int> previousTileList = new Queue<Vector3Int>();
         HashSet<Vector3Int> viewedTiles = new HashSet<Vector3Int>();
         return search(previousTileList, viewedTiles, playerCell, goalCell, playerData.moves);
     }
@@ -121,22 +129,18 @@ public class Tile_Selector_Script : MonoBehaviour
         Vector3Int downTile = new Vector3Int(start.x, start.y - 1, start.z);
         if (CheckTile(tileMap.GetTile(leftTile)) && !viewedTiles.Contains(leftTile) && (compareTiles(leftTile, goal)))
         {
-            Debug.Log("it is left");
             return true;
         }
         if (CheckTile(tileMap.GetTile(rightTile)) && !viewedTiles.Contains(rightTile) && (compareTiles(rightTile, goal)))
         {
-            Debug.Log("it is right");
             return true;
         }
         if (CheckTile(tileMap.GetTile(upTile)) && !viewedTiles.Contains(upTile) && (compareTiles(upTile, goal)))
         {
-            Debug.Log("it is up");
             return true;
         }
         if (CheckTile(tileMap.GetTile(downTile)) && !viewedTiles.Contains(downTile) && (compareTiles(downTile, goal)))
         {
-            Debug.Log("it is down");
             return true;
         }
         if (search(previousTileList, viewedTiles, leftTile, goal, moves) || 
