@@ -5,6 +5,12 @@ using UnityEngine.Tilemaps;
 
 public class TileMap : MonoBehaviour
 {
+
+    /// This script takes information from the Tilemap component and maps it into a 2D array called world.
+    /// Each index is 0 if it is a floor, or -1 if it is not.
+    /// The row/column represents the X and Y coordinate of the cell in the world.
+    /// It makes it easy to check neighbors - left is x-1, above is y+1, below is y-1, right is x+1.
+    /// The coordinate grid starts in the bottom left corner of the map.
     public GameObject cursor;
     public int[,] world;
     Tilemap tileMap;
@@ -44,37 +50,4 @@ public class TileMap : MonoBehaviour
         }
         return false;
     }
-
-    /*public void AddNeighbors(TileStruct tile, int x, int y)
-    {
-        Vector3Int leftCoordinate = new Vector3Int(x - 1, y, zAxis);
-        Vector3Int upCoordinate = new Vector3Int(x, y - 1, zAxis);
-        Vector3Int rightCoordinate = new Vector3Int(x + 1, y, zAxis);
-        Vector3Int downCoordinate = new Vector3Int(x, y + 1, zAxis);
-        TileBase tileLeft = tileMap.GetTile(leftCoordinate);
-        TileBase tileUp = tileMap.GetTile(upCoordinate);
-        TileBase tileRight = tileMap.GetTile(rightCoordinate);
-        TileBase tileDown = tileMap.GetTile(downCoordinate);
-
-        if (CheckTile(tileLeft))
-        {
-            TileStruct leftStruct = new TileStruct(tileLeft.name, leftCoordinate);
-            world[tileCount].AddLast(leftStruct);
-        }
-        if (CheckTile(tileUp))
-        {
-            TileStruct upStruct = new TileStruct(tileUp.name, upCoordinate);
-            world[tileCount].AddLast(upStruct);
-        }
-        if (CheckTile(tileRight))
-        {
-            TileStruct rightStruct = new TileStruct(tileRight.name, rightCoordinate);
-            world[tileCount].AddLast(rightStruct);
-        }
-        if (CheckTile(tileDown))
-        {
-            TileStruct downStruct = new TileStruct(tileDown.name, downCoordinate);
-            world[tileCount].AddLast(downStruct);
-        }
-    }*/
 }
