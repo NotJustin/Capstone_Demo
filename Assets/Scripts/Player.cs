@@ -9,6 +9,15 @@ public class Player : MonoBehaviour
     float zAxis = 10;
     public int maxMoves = 2;
     public int moves = 2;
+    bool selected;
+
+    struct PlayerStruct
+    {
+        GameObject player;
+        int maxMoves;
+        int moves;
+        bool selected;
+    }
 
     void Start()
     {
