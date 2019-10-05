@@ -167,7 +167,7 @@ public class Tile_Selector_Script : MonoBehaviour
                 nextTile = false;
                 totalDistance = Vector3.Distance(player.transform.position, destination);
             }
-            float distanceCovered = Time.time - startTime;
+            float distanceCovered = (Time.time - startTime) * 0.1f;
             float fractionOfJourney = distanceCovered / totalDistance;
             player.transform.position = Vector3.Lerp(player.transform.position, destination, fractionOfJourney);
             if (player.transform.position == destination && index < path.Count)
