@@ -17,6 +17,7 @@ public class Tile_Selector_Script : MonoBehaviour
     /// However, if I want to get a component from the player GameObject, I have to type "player.GetComponent<NameOfComponent>();"
     public GameObject tileMapObj;
     public GameObject player;
+    public float playerSpeed;
 
     /// These are the three colors the square cursor can be. I attach an image to them in the same way that I would for the GameObjects above,
     /// except I drag from the Project window to the Inspector window.
@@ -37,17 +38,23 @@ public class Tile_Selector_Script : MonoBehaviour
     Vector3 mousePosition;
     Vector3Int playerCell;
     float zAxis = 10;
-    public float startTime;
-    public bool nextTile = true;
     public bool started = false;
-    private int index = 0;
-    public float totalDistance;
     public bool confirm = false;
     public int pendingMoves = 0;
+    bool moving = false;
+    Vector3 destination;
+    float startTime;
+    float totalDistance;
+    Vector3Int start;
+
+    Vector3 undefinedVec3 = new Vector3(-1, -1, -1);
+    Vector3Int undefinedVec3Int = new Vector3Int(-1, -1, -1);
 
     /// This is a list of the cells of the currently selected tiles. They are (x, y, z) coordinates, but since this is a 2D map they all have the same Z value.
     List<Vector3Int> path;
     private Vector3Int[] possibleTiles = new Vector3Int[4];
+
+    Animator animator;
 
     void Start()
     {
@@ -67,12 +74,15 @@ public class Tile_Selector_Script : MonoBehaviour
         playerCell = tileMap.WorldToCell(player.transform.position);
         tileMap.SetTileFlags(playerCell, TileFlags.None);
         tileMap.SetColor(playerCell, Color.magenta);
+        start = playerCell;
 
         // Setting possible-to-select tiles as those surrounding the player, if the player has moves
         if (playerData.moves > 0)
         {
-            HighlightNeighbors(tileMap.WorldToCell(player.transform.position));
+            HighlightNeighbors(playerCell);
         }
+
+        animator = player.GetComponent<Animator>();
     }
 
     void Update()
@@ -89,18 +99,10 @@ public class Tile_Selector_Script : MonoBehaviour
             /// This is just converting the Vector3 position of the cursor and player in the world to the cell position of
             /// the tile they are currently on when the player clicks their left mouse button.
             Vector3Int goal = tileMap.WorldToCell(transform.position);
-            Vector3Int start;
-            if (path.Count > 0)
-            {
-                start = path[path.Count - 1];
-            }
-            else
-            {
-                start = tileMap.WorldToCell(player.transform.position);
-            }
             /// If this statement is true, it adds the tile to the path. See CheckTile() for more info.
             if (playerData.moves > 0 && CheckTile(start, goal) && IsNeighbor(start, goal))
             {
+                start = goal;
                 UnhighlightOldNeighbors();
                 /// Changes the tileflags to none so that we are able to change anything about the tile.
                 /// Then, changiing the color to red, adds it to the path list, and adjusts the number of remaining moves appropriately.
@@ -112,7 +114,7 @@ public class Tile_Selector_Script : MonoBehaviour
                 ++pendingMoves;
                 if (playerData.moves > 0)
                 {
-                    HighlightNeighbors(path[path.Count - 1]);
+                    HighlightNeighbors(start);
                 }
             }
             if (start == goal)
@@ -137,16 +139,25 @@ public class Tile_Selector_Script : MonoBehaviour
             Vector3Int coordinate = tileMap.WorldToCell(transform.position);
             if (path.Count > 0 && coordinate == path[path.Count - 1])
             {
+                UnhighlightOldNeighbors();
                 tileMap.SetColor(coordinate, Color.white);
                 path.RemoveAt(path.Count - 1);
                 playerData.moves++;
                 pendingMoves--;
+                if(path.Count > 0)
+                {
+                    HighlightNeighbors(path[path.Count - 1]);
+                }
+                else
+                {
+                    HighlightNeighbors(playerCell);
+                }
             }
         }
 
         /// "confirm" is set true by the GUI script when the button is pressed.
         /// "started" is true if the player is currently moving, false otherwise.
-        /// All this does is change the red tiles to green tiles, and then stops trying to change them to green afterward.
+        /// Setting up player movement.
         if (confirm && !started)
         {
             pendingMoves = 0;
@@ -155,49 +166,47 @@ public class Tile_Selector_Script : MonoBehaviour
                 tileMap.SetColor(path[i], Color.green);
             }
             started = true;
-        }
-
-        /// This begins player movement by moving the player one tile at a time.
-        if (confirm && index < path.Count)
-        {
-            Vector3 destination = new Vector3(RoundOffset(path[index].x), RoundOffset(path[index].y), zAxis);
-            if (nextTile)
-            {
-                startTime = Time.time;
-                nextTile = false;
-                totalDistance = Vector3.Distance(player.transform.position, destination);
-            }
-            float distanceCovered = (Time.time - startTime) * 0.1f;
-            float fractionOfJourney = distanceCovered / totalDistance;
-            player.transform.position = Vector3.Lerp(player.transform.position, destination, fractionOfJourney);
-            if (player.transform.position == destination && index < path.Count)
-            {
-                nextTile = true;
-                tileMap.SetColor(path[index], Color.white);
-                ++index;
-            }
+            moving = true;
+            destination = new Vector3(RoundOffset(path[0].x), RoundOffset(path[0].y), zAxis);
+            startTime = Time.time;
+            totalDistance = Vector3.Distance(player.transform.position, destination);
             tileMap.SetTileFlags(playerCell, TileFlags.None);
             tileMap.SetColor(playerCell, Color.white);
         }
 
-        /// This removes every tile from the path after the player has reached their destination, so that path may be used again.
-        if (path.Count > 0 && index == path.Count)
+        /// This begins player movement by moving the player one tile at a time.
+        if (moving && confirm && path.Count > 0)
         {
-            playerCell = tileMap.WorldToCell(player.transform.position);
-            tileMap.SetTileFlags(playerCell, TileFlags.None);
-            tileMap.SetColor(playerCell, Color.magenta);
-            /*if (index == path.Count)
+            animator.Play("walking");
+            float distanceCovered, fractionOfJourney;
+            if (player.transform.position != destination)
             {
-                playerData.moves = 0;
-            }*/
-            do
-            {
-                --index;
-                path.RemoveAt(index);
+                distanceCovered = (Time.time - startTime) * playerSpeed;
+                fractionOfJourney = distanceCovered / totalDistance;
+                player.transform.position = Vector3.Lerp(player.transform.position, destination, fractionOfJourney);
             }
-            while (path.Count > 0);
-            confirm = false;
-            started = false;
+            if (player.transform.position == destination)
+            {
+                tileMap.SetTileFlags(path[0], TileFlags.None);
+                tileMap.SetColor(path[0], Color.white);
+                path.RemoveAt(0);
+                if (path.Count > 0)
+                {
+                    startTime = Time.time;
+                    destination = new Vector3(RoundOffset(path[0].x), RoundOffset(path[0].y), zAxis);
+                    totalDistance = Vector3.Distance(player.transform.position, destination);
+                }
+                else
+                {
+                    animator.Play("idle");
+                    moving = false;
+                    playerCell = tileMap.WorldToCell(player.transform.position);
+                    tileMap.SetTileFlags(playerCell, TileFlags.None);
+                    tileMap.SetColor(playerCell, Color.magenta);
+                    confirm = false;
+                    started = false;
+                }
+            }
         }
     }
 
@@ -289,13 +298,12 @@ public class Tile_Selector_Script : MonoBehaviour
 
     public void UnhighlightOldNeighbors()
     {
-        Vector3Int undefinedV = new Vector3Int(-1, -1, -1);
         for(int i = 0; i < possibleTiles.Length; i++)
         {
-            if (possibleTiles[i] != undefinedV)
+            if (possibleTiles[i] != undefinedVec3Int)
             {
                 tileMap.SetColor(possibleTiles[i], Color.white);
-                possibleTiles[i] = undefinedV;
+                possibleTiles[i] = undefinedVec3Int;
             }
         }
     }

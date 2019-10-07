@@ -9,7 +9,7 @@ public class GUI_buttons : MonoBehaviour
     {
         if (GUI.Button(new Rect(300, 200, 150, 40), "Start Game"))
         {
-            SceneManager.LoadScene("Sample_Level");
+            SceneManager.LoadScene("Sample_Level", LoadSceneMode.Single);
         }
     }
 }
