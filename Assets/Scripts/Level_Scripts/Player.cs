@@ -9,19 +9,22 @@ public class Player : MonoBehaviour
     float zAxis = 10;
     public int maxMoves = 2;
     public int moves = 2;
-    bool selected;
+    public float playerSpeed = 0.25f;
+    public bool selected;
+    public Animator animator;
 
-    struct PlayerStruct
+    /*struct PlayerStruct
     {
         GameObject player;
         int maxMoves;
         int moves;
         bool selected;
-    }
+    }*/
 
     void Start()
     {
         transform.position = new Vector3(RoundOffset(transform.position.x), RoundOffset(transform.position.y), zAxis);
+        animator = GetComponent<Animator>();
     }
 
     public float RoundOffset(float a)
