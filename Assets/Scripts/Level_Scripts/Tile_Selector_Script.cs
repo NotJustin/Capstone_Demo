@@ -18,6 +18,7 @@ public class Tile_Selector_Script : MonoBehaviour
     public GameObject tileMapObj;
     public GameObject player;
     public GameObject camera;
+    public TileBase floor_tile_asset;
 
     /// These are the three colors the square cursor can be. I attach an image to them in the same way that I would for the GameObjects above,
     /// except I drag from the Project window to the Inspector window.
@@ -38,7 +39,7 @@ public class Tile_Selector_Script : MonoBehaviour
     /// As of now, the only one used in a different script is pendingMoves, which I use to display the number on the GUI.
     Vector3 mousePosition;
     public Vector3Int playerCell;
-    float zAxis = 10;
+    static int zAxis = 10;
     public bool started = false;
     public bool confirm = false;
     public int pendingMoves = 0;
@@ -48,12 +49,14 @@ public class Tile_Selector_Script : MonoBehaviour
     float totalDistance;
     public Vector3Int start;
 
-    Vector3 undefinedVec3 = new Vector3(-1, -1, -1);
-    Vector3Int undefinedVec3Int = new Vector3Int(-1, -1, -1);
+    Vector3 undefinedVec3 = new Vector3(-1, -1, 0);
+    Vector3Int undefinedVec3Int = new Vector3Int(-1, -1, 0);
 
     /// This is a list of the cells of the currently selected tiles. They are (x, y, z) coordinates, but since this is a 2D map they all have the same Z value.
     List<Vector3Int> path;
     private Vector3Int[] possibleTiles = new Vector3Int[4];
+    List<Vector3Int> doors;
+    List<Vector3Int> wires;
 
     Animator animator;
 
@@ -71,6 +74,8 @@ public class Tile_Selector_Script : MonoBehaviour
 
         /// Initializing the list by creating a new one.
         path = new List<Vector3Int>();
+        doors = new List<Vector3Int>();
+        wires = new List<Vector3Int>();
 
         playerCell = tileMap.WorldToCell(gui.playerData.transform.position);
         tileMap.SetTileFlags(playerCell, TileFlags.None);
@@ -95,7 +100,7 @@ public class Tile_Selector_Script : MonoBehaviour
         mousePosition.z = zAxis;
         transform.position = new Vector3((RoundOffset(mousePosition.x)), (RoundOffset(mousePosition.y)), zAxis);
 
-        if (Input.GetMouseButtonDown(0) || Input.GetMouseButton(0))
+        if (Input.GetMouseButtonDown(0)/* || Input.GetMouseButton(0)*/)
         {
             /// This is just converting the Vector3 position of the cursor and player in the world to the cell position of
             /// the tile they are currently on when the player clicks their left mouse button.
@@ -191,6 +196,7 @@ public class Tile_Selector_Script : MonoBehaviour
             }
             if (gui.playerData.transform.position == destination)
             {
+                OpenDoors(path[0]);
                 tileMap.SetTileFlags(path[0], TileFlags.None);
                 tileMap.SetColor(path[0], Color.white);
                 path.RemoveAt(0);
@@ -248,15 +254,67 @@ public class Tile_Selector_Script : MonoBehaviour
     /// * it must be a neighbor of the previous tile in the path.
     public bool CheckTile(Vector3Int start, Vector3Int goal)
     {
-        TileBase tile = tileMap.GetTile(goal);
-        if(goal != tileMap.WorldToCell(gui.playerData.transform.position) && !path.Contains(goal))
+        //Debug.Log(tileMap.GetTile(undefinedVec3Int));
+        TileBase goalTile = tileMap.GetTile(goal);
+        TileBase startTile = tileMap.GetTile(start);
+        //Debug.Log(startTile.name);
+        //Debug.Log(goalTile.name);
+        //Debug.Log("goal: " + goal+ "| start: " + start);
+        if (goal == tileMap.WorldToCell(gui.playerData.transform.position) || path.Contains(goal))
         {
-            if (tile != null && tile.name.Contains("floor"))
+            return false;
+        }
+        else if (goalTile == null || goalTile.name.Contains("wall") || goalTile.name.Contains("door"))
+        {
+            //Debug.Log("wall/door/null");
+            return false;
+        }
+        else if (startTile.name.Contains("barrier"))
+        {
+            if (startTile.name.Contains("left") && goal.x == start.x - 1)
             {
-                return true;
+                //Debug.Log("left");
+                return false;
+            }
+            else if (startTile.name.Contains("bottom") && goal.y == start.y - 1)
+            {
+                //Debug.Log("bottom");
+                return false;
+            }
+            else if (startTile.name.Contains("right") && goal.x == start.x + 1)
+            {
+                //Debug.Log("right");
+                return false;
+            }
+            else if (startTile.name.Contains("top") && goal.y == start.y + 1)
+            {
+                //Debug.Log("top");
+                return false;
             }
         }
-        return false;
+        else if (goalTile.name.Contains("barrier"))
+        {
+            if (goalTile.name.Contains("right") && goal.x == start.x - 1)
+            {
+                return false;
+            }
+            else if (goalTile.name.Contains("top") && goal.y == start.y - 1)
+            {
+                //Debug.Log("bottom");
+                return false;
+            }
+            else if (goalTile.name.Contains("left") && goal.x == start.x + 1)
+            {
+                //Debug.Log("right");
+                return false;
+            }
+            else if (goalTile.name.Contains("bottom") && goal.y == start.y + 1)
+            {
+                //Debug.Log("top");
+                return false;
+            }
+        }
+        return true;
     }
 
     /// Checks if one cell is above/below/left/right of another cell.
@@ -278,24 +336,28 @@ public class Tile_Selector_Script : MonoBehaviour
         Vector3Int right = new Vector3Int(start.x + 1, start.y, 0);
         Vector3Int above = new Vector3Int(start.x, start.y + 1, 0);
         Vector3Int below = new Vector3Int(start.x, start.y - 1, 0);
+        //Debug.Log("checking left");
         if (CheckTile(start, left))
         {
             possibleTiles[0] = left;
             tileMap.SetTileFlags(left, TileFlags.None);
             tileMap.SetColor(left, Color.yellow);
         }
+        //Debug.Log("checking right");
         if (CheckTile(start, right))
         {
             possibleTiles[1] = right;
             tileMap.SetTileFlags(right, TileFlags.None);
             tileMap.SetColor(right, Color.yellow);
         }
+        //Debug.Log("checking top");
         if (CheckTile(start, above))
         {
             possibleTiles[2] = above;
             tileMap.SetTileFlags(above, TileFlags.None);
             tileMap.SetColor(above, Color.yellow);
         }
+        //Debug.Log("checking bottom");
         if (CheckTile(start, below))
         {
             possibleTiles[3] = below;
@@ -330,6 +392,129 @@ public class Tile_Selector_Script : MonoBehaviour
             gui.playerData.moves++;
         }
         path.Clear();
+    }
+
+    public void OpenDoors(Vector3Int start)
+    {
+        TileBase startTile = tileMap.GetTile(start);
+        Vector3Int prev = undefinedVec3Int;
+        if (startTile.name.Contains("key"))
+        {
+            DoorSearch(start, prev);
+            foreach (Vector3Int door in doors)
+            {
+                tileMap.SetTile(door, floor_tile_asset);
+            }
+            wires.Clear();
+            doors.Clear();
+        }
+    }
+
+    public void DoorSearch(Vector3Int start, Vector3Int prev)
+    {
+        Vector3Int left = new Vector3Int(start.x - 1, start.y, 0);
+        Vector3Int right = new Vector3Int(start.x + 1, start.y, 0);
+        Vector3Int above = new Vector3Int(start.x, start.y + 1, 0);
+        Vector3Int below = new Vector3Int(start.x, start.y - 1, 0);
+        TileBase tileStart = tileMap.GetTile(start);
+        TileBase tileLeft = tileMap.GetTile(left);
+        TileBase tileRight = tileMap.GetTile(right);
+        TileBase tileAbove = tileMap.GetTile(above);
+        TileBase tileBelow = tileMap.GetTile(below);
+
+        wires.Add(start);
+
+        if (prev == undefinedVec3Int || !wires.Contains(left))
+        {
+            if (tileLeft.name.Contains("door") && tileStart.name.Contains("left"))
+            {
+                ChangeDoors(left, prev);
+                return;
+            }
+            else if (tileLeft.name.Contains("wire"))
+            {
+                prev = start;
+                DoorSearch(left, prev);
+                return;
+            }
+        }
+        if (prev == undefinedVec3Int || !wires.Contains(right))
+        {
+            if (tileRight.name.Contains("door") && tileStart.name.Contains("right"))
+            {
+                ChangeDoors(right, prev);
+                return;
+            }
+            else if (tileRight.name.Contains("wire"))
+            {
+                prev = start;
+                DoorSearch(right, prev);
+                return;
+            }
+        }
+        if (prev == undefinedVec3Int || !wires.Contains(above))
+        {
+            if (tileAbove.name.Contains("door") && tileStart.name.Contains("top"))
+            {
+                ChangeDoors(above, prev);
+                return;
+            }
+            else if (tileAbove.name.Contains("wire"))
+            {
+                prev = start;
+                DoorSearch(above, prev);
+                return;
+            }
+        }
+        if (prev == undefinedVec3Int || !wires.Contains(below))
+        {
+            if (tileBelow.name.Contains("door") && tileStart.name.Contains("bottom"))
+            {
+                ChangeDoors(below, prev);
+                return;
+            }
+            else if (tileBelow.name.Contains("wire"))
+            {
+                prev = start;
+                DoorSearch(below, prev);
+                return;
+            }
+        }
+    }
+
+    public void ChangeDoors(Vector3Int start, Vector3Int prev)
+    {
+        Vector3Int left = new Vector3Int(start.x - 1, start.y, 0);
+        Vector3Int right = new Vector3Int(start.x + 1, start.y, 0);
+        Vector3Int above = new Vector3Int(start.x, start.y + 1, 0);
+        Vector3Int below = new Vector3Int(start.x, start.y - 1, 0);
+        TileBase tileLeft = tileMap.GetTile(left);
+        TileBase tileRight = tileMap.GetTile(right);
+        TileBase tileAbove = tileMap.GetTile(above);
+        TileBase tileBelow = tileMap.GetTile(below);
+
+        doors.Add(start);
+        
+        if (left != prev && tileLeft != null && !doors.Contains(left) && tileLeft.name.Contains("door"))
+        {
+            prev = start;
+            ChangeDoors(left, prev);
+        }
+        if (right != prev && tileRight != null && !doors.Contains(right) && tileRight.name.Contains("door"))
+        {
+            prev = start;
+            ChangeDoors(right, prev);
+        }
+        if (above != prev && tileAbove != null && !doors.Contains(above) && tileAbove.name.Contains("door"))
+        {
+            prev = start;
+            ChangeDoors(above, prev);
+        }
+        if (below != prev && tileBelow != null && !doors.Contains(below) && tileBelow.name.Contains("door"))
+        {
+            prev = start;
+            ChangeDoors(below, prev);
+        }
     }
 
     /// EVERYTHING BELOW IS UNUSED CURRENTLY. UNCOMMENTING WILL CAUSE ERRORS
