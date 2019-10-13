@@ -12,6 +12,8 @@ public class Player : MonoBehaviour
     public float playerSpeed = 0.25f;
     public bool selected;
     public Animator animator;
+    public Vector3 lastPosition;
+    public bool started = false;
 
     /*struct PlayerStruct
     {
@@ -23,8 +25,19 @@ public class Player : MonoBehaviour
 
     void Start()
     {
-        transform.position = new Vector3(RoundOffset(transform.position.x), RoundOffset(transform.position.y), zAxis);
         animator = GetComponent<Animator>();
+        lastPosition = new Vector3(-1, -1, 0);
+    }
+
+    private void FixedUpdate()
+    {
+        if (!started && lastPosition != transform.position)
+        {
+            started = true;
+            transform.position = new Vector3(RoundOffset(transform.position.x), RoundOffset(transform.position.y), zAxis);
+            lastPosition = transform.position;
+            Debug.Log(transform.position);
+        }
     }
 
     public float RoundOffset(float a)

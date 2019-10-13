@@ -17,7 +17,7 @@ public class Tile_Selector_Script : MonoBehaviour
     /// However, if I want to get a component from the player GameObject, I have to type "player.GetComponent<NameOfComponent>();"
     public GameObject tileMapObj;
     public GameObject player;
-    public GameObject camera;
+    public new GameObject camera;
     public TileBase floor_tile_asset;
 
     /// These are the three colors the square cursor can be. I attach an image to them in the same way that I would for the GameObjects above,
@@ -32,14 +32,14 @@ public class Tile_Selector_Script : MonoBehaviour
     guiScript gui;
     //Player playerData;
     private SpriteRenderer spriteRenderer;
-    //public int[,] world; /* Commenting this and all related lines out because we aren't using it at the moment but might in the future */
+    public int[,] world; /* Commenting this and all related lines out because we aren't using it at the moment but might in the future */
 
     /// These are variables that I will be using in this script.
     /// If I want scripts on other GameObjects to use data from this script, it will likely be using one of these variables.
     /// As of now, the only one used in a different script is pendingMoves, which I use to display the number on the GUI.
     Vector3 mousePosition;
     public Vector3Int playerCell;
-    static int zAxis = 10;
+    static int zAxis = 0;
     public bool started = false;
     public bool confirm = false;
     public int pendingMoves = 0;
@@ -57,8 +57,8 @@ public class Tile_Selector_Script : MonoBehaviour
     private Vector3Int[] possibleTiles = new Vector3Int[4];
     List<Vector3Int> doors;
     List<Vector3Int> wires;
-
-    Animator animator;
+    Vector3Int[] spawns;
+    int spawnAmount = 0;
 
     void Start()
     {
@@ -68,7 +68,7 @@ public class Tile_Selector_Script : MonoBehaviour
         /// In the future, we will have to be more particular about the names as there will be more types of players/characters.
         tileMap = tileMapObj.GetComponent<Tilemap>();
         gui = camera.GetComponent<guiScript>();
-        //world = tileMapObj.GetComponent<TileMap>().world;
+        world = tileMapObj.GetComponent<TileMap>().world;
         spriteRenderer = GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = yellow_cursor;
 
@@ -76,6 +76,28 @@ public class Tile_Selector_Script : MonoBehaviour
         path = new List<Vector3Int>();
         doors = new List<Vector3Int>();
         wires = new List<Vector3Int>();
+        spawns = new Vector3Int[gui.players.transform.childCount];
+
+        for (int x = 0; x < world.GetLength(0); x++)
+        {
+            for (int y = 0; y < world.GetLength(1); y++)
+            {
+                //Debug.Log(world[x, y]);
+                if (spawnAmount < spawns.GetLength(0) && world[x, y] == 2)
+                {
+                    spawns[spawnAmount] = new Vector3Int(x, y, zAxis);
+                    Debug.Log(spawns[spawnAmount]);
+                    spawnAmount++;
+                }
+            }
+        }
+
+        for (int i = 0; i < gui.players.transform.childCount; i++)
+        {
+            Debug.Log(gui.players.transform.GetChild(i));
+            Debug.Log(spawns[i]);
+            gui.players.transform.GetChild(i).transform.position = spawns[i];
+        }
 
         playerCell = tileMap.WorldToCell(gui.playerData.transform.position);
         tileMap.SetTileFlags(playerCell, TileFlags.None);
@@ -87,8 +109,6 @@ public class Tile_Selector_Script : MonoBehaviour
         {
             HighlightNeighbors(playerCell);
         }
-
-        animator = player.GetComponent<Animator>();
     }
 
     void Update()
@@ -431,7 +451,7 @@ public class Tile_Selector_Script : MonoBehaviour
                 ChangeDoors(left, prev);
                 return;
             }
-            else if (tileLeft.name.Contains("wire"))
+            else if (tileLeft.name.Contains("wire") && (tileStart.name.Contains("left") || tileStart.name.Contains("key")) && tileLeft.name.Contains("right"))
             {
                 prev = start;
                 DoorSearch(left, prev);
@@ -445,7 +465,7 @@ public class Tile_Selector_Script : MonoBehaviour
                 ChangeDoors(right, prev);
                 return;
             }
-            else if (tileRight.name.Contains("wire"))
+            else if (tileRight.name.Contains("wire") && (tileStart.name.Contains("right") || tileStart.name.Contains("key")) && tileRight.name.Contains("left"))
             {
                 prev = start;
                 DoorSearch(right, prev);
@@ -459,7 +479,7 @@ public class Tile_Selector_Script : MonoBehaviour
                 ChangeDoors(above, prev);
                 return;
             }
-            else if (tileAbove.name.Contains("wire"))
+            else if (tileAbove.name.Contains("wire") && (tileStart.name.Contains("top") || tileStart.name.Contains("key")) && tileAbove.name.Contains("bottom"))
             {
                 prev = start;
                 DoorSearch(above, prev);
@@ -473,7 +493,7 @@ public class Tile_Selector_Script : MonoBehaviour
                 ChangeDoors(below, prev);
                 return;
             }
-            else if (tileBelow.name.Contains("wire"))
+            else if (tileBelow.name.Contains("wire") && (tileStart.name.Contains("bottom") || tileStart.name.Contains("key")) && tileBelow.name.Contains("top"))
             {
                 prev = start;
                 DoorSearch(below, prev);

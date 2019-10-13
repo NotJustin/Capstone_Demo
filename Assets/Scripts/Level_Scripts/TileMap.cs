@@ -32,7 +32,16 @@ public class TileMap : MonoBehaviour
                 TileBase tile = tileMap.GetTile(position);
                 if (CheckTile(tile))
                 {
-                    world[x, y] = 0;
+                    //Debug.Log(tile.name);
+                    if (tile.name.Contains("spawn"))
+                    {
+                        //Debug.Log("test");
+                        world[x, y] = 2;
+                    }
+                    else if (tile.name.Contains("floor") || tile.name.Contains("wire"))
+                    {
+                        world[x, y] = 0;
+                    }
                 }
                 else
                 {
@@ -44,7 +53,7 @@ public class TileMap : MonoBehaviour
 
     public bool CheckTile(TileBase tile)
     {
-        if (tile != null && tile.name.Contains("floor"))
+        if (tile != null)
         {
             return true;
         }
