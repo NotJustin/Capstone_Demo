@@ -102,7 +102,6 @@ public class Tile_Selector_Script : MonoBehaviour
         playerCell = tileMap.WorldToCell(gui.playerData.transform.position);
         tileMap.SetTileFlags(playerCell, TileFlags.None);
         tileMap.SetColor(playerCell, Color.magenta);
-        start = playerCell;
 
         // Setting possible-to-select tiles as those surrounding the player, if the player has moves
         if (gui.playerData.moves > 0)
@@ -133,7 +132,8 @@ public class Tile_Selector_Script : MonoBehaviour
                 /// Changes the tileflags to none so that we are able to change anything about the tile.
                 /// Then, changiing the color to red, adds it to the path list, and adjusts the number of remaining moves appropriately.
                 tileMap.SetTileFlags(goal, TileFlags.None);
-                tileMap.SetColor(goal, Color.red);
+                Color color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+                tileMap.SetColor(goal, color);
                 //spriteRenderer.sprite = green_cursor;
                 path.Add(goal);
                 --gui.playerData.moves;
@@ -191,12 +191,14 @@ public class Tile_Selector_Script : MonoBehaviour
             pendingMoves = 0;
             for (int i = 0; i < path.Count; i++)
             {
-                tileMap.SetColor(path[i], Color.green);
+                Color color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+                tileMap.SetColor(path[i], color);
             }
             started = true;
             moving = true;
             destination = new Vector3(RoundOffset(path[0].x), RoundOffset(path[0].y), zAxis);
             startTime = Time.time;
+            Debug.Log(gui.playerData.transform.position + " " + destination);
             totalDistance = Vector3.Distance(gui.playerData.transform.position, destination);
             tileMap.SetTileFlags(playerCell, TileFlags.None);
             tileMap.SetColor(playerCell, Color.white);
@@ -212,6 +214,7 @@ public class Tile_Selector_Script : MonoBehaviour
             {
                 distanceCovered = (Time.time - startTime) * gui.playerData.playerSpeed;
                 fractionOfJourney = distanceCovered / totalDistance;
+                Debug.Log(totalDistance);
                 gui.playerData.transform.position = Vector3.Lerp(gui.playerData.transform.position, destination, fractionOfJourney);
             }
             if (gui.playerData.transform.position == destination)
@@ -357,32 +360,33 @@ public class Tile_Selector_Script : MonoBehaviour
         Vector3Int above = new Vector3Int(start.x, start.y + 1, 0);
         Vector3Int below = new Vector3Int(start.x, start.y - 1, 0);
         //Debug.Log("checking left");
+        Color color = new Color(1.0f, 1.0f, 0.0f, 0.5f);
         if (CheckTile(start, left))
         {
             possibleTiles[0] = left;
             tileMap.SetTileFlags(left, TileFlags.None);
-            tileMap.SetColor(left, Color.yellow);
+            tileMap.SetColor(left, color);
         }
         //Debug.Log("checking right");
         if (CheckTile(start, right))
         {
             possibleTiles[1] = right;
             tileMap.SetTileFlags(right, TileFlags.None);
-            tileMap.SetColor(right, Color.yellow);
+            tileMap.SetColor(right, color);
         }
         //Debug.Log("checking top");
         if (CheckTile(start, above))
         {
             possibleTiles[2] = above;
             tileMap.SetTileFlags(above, TileFlags.None);
-            tileMap.SetColor(above, Color.yellow);
+            tileMap.SetColor(above, color);
         }
         //Debug.Log("checking bottom");
         if (CheckTile(start, below))
         {
             possibleTiles[3] = below;
             tileMap.SetTileFlags(below, TileFlags.None);
-            tileMap.SetColor(below, Color.yellow);
+            tileMap.SetColor(below, color);
         }
     }
 

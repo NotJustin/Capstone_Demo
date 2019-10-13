@@ -16,11 +16,13 @@ public class guiScript : MonoBehaviour
     {
         players = GameObject.FindGameObjectWithTag("Players");
         tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
+        tileSelectorScript.playerCell = tileSelectorScript.tileMap.WorldToCell(playerData.transform.position);
+        tileSelectorScript.start = tileSelectorScript.playerCell;
     }
 
     void OnGUI()
     {
-        if (GUI.Button(new Rect(10, 50, 100, 20), "Confirm moves"))
+        if (!tileSelectorScript.started && GUI.Button(new Rect(10, 50, 100, 20), "Confirm moves"))
         {
             if (playerData != null && tileSelectorScript.pendingMoves > 0)
             {
@@ -28,7 +30,7 @@ public class guiScript : MonoBehaviour
             }
         }
 
-        if (GUI.Button(new Rect(10, 70, 100, 20), "Select Player 1"))
+        if (!tileSelectorScript.started && GUI.Button(new Rect(10, 70, 100, 20), "Select Player 1"))
         {
             if (playerData != null)
             {
@@ -40,14 +42,14 @@ public class guiScript : MonoBehaviour
             {
                 tileSelectorScript.HighlightNeighbors(tileSelectorScript.tileMap.WorldToCell(playerData.transform.position));
             }
-            tileSelectorScript.start = tileSelectorScript.tileMap.WorldToCell(playerData.transform.position);
-            tileSelectorScript.playerCell = tileSelectorScript.start;
-            tileSelectorScript.tileMap.SetTileFlags(tileSelectorScript.start, TileFlags.None);
+            tileSelectorScript.playerCell = tileSelectorScript.tileMap.WorldToCell(playerData.transform.position);
+            tileSelectorScript.start = tileSelectorScript.playerCell;
+            tileSelectorScript.tileMap.SetTileFlags(tileSelectorScript.playerCell, TileFlags.None);
             tileSelectorScript.tileMap.SetColor(tileSelectorScript.start, Color.magenta);
             playerData.selected = true;
         }
 
-        if (GUI.Button(new Rect(10, 90, 100, 20), "Select Player 2"))
+        if (!tileSelectorScript.started && GUI.Button(new Rect(10, 90, 100, 20), "Select Player 2"))
         {
             if (playerData != null)
             {
@@ -59,9 +61,9 @@ public class guiScript : MonoBehaviour
             {
                 tileSelectorScript.HighlightNeighbors(tileSelectorScript.tileMap.WorldToCell(playerData.transform.position));
             }
-            tileSelectorScript.start = tileSelectorScript.tileMap.WorldToCell(playerData.transform.position);
-            tileSelectorScript.playerCell = tileSelectorScript.start;
-            tileSelectorScript.tileMap.SetTileFlags(tileSelectorScript.start, TileFlags.None);
+            tileSelectorScript.playerCell = tileSelectorScript.tileMap.WorldToCell(playerData.transform.position);
+            tileSelectorScript.start = tileSelectorScript.playerCell;
+            tileSelectorScript.tileMap.SetTileFlags(tileSelectorScript.playerCell, TileFlags.None);
             tileSelectorScript.tileMap.SetColor(tileSelectorScript.start, Color.magenta);
             playerData.selected = true;
         }

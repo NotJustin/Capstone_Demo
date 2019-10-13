@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class Player : MonoBehaviour
 {
     /// This script corrects the player's initial position to snap to the grid
     /// and stores the maxMoves/moves that the player has so that other scripts may view and change the numbers as fit.
-    float zAxis = 10;
+    float zAxis = 0;
     public int maxMoves = 2;
     public int moves = 2;
     public float playerSpeed = 0.25f;
@@ -14,6 +15,8 @@ public class Player : MonoBehaviour
     public Animator animator;
     public Vector3 lastPosition;
     public bool started = false;
+    GameObject tileSelector;
+    Tile_Selector_Script tileSelectorScript;
 
     /*struct PlayerStruct
     {
@@ -25,6 +28,8 @@ public class Player : MonoBehaviour
 
     void Start()
     {
+        tileSelector = GameObject.FindGameObjectWithTag("TileSelector");
+        tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
         animator = GetComponent<Animator>();
         lastPosition = new Vector3(-1, -1, 0);
     }
