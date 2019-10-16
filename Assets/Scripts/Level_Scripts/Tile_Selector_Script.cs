@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.SceneManagement;
 
 public class Tile_Selector_Script : MonoBehaviour
 {
@@ -83,6 +84,10 @@ public class Tile_Selector_Script : MonoBehaviour
                     {
                         world[x, y] = 2;
                     }
+                    else if(tile.name.Contains("win"))
+                    {
+                        world[x, y] = 1; 
+                    }
                     else if (tile.name.Contains("floor") || tile.name.Contains("wire"))
                     {
                         world[x, y] = 0;
@@ -155,12 +160,15 @@ public class Tile_Selector_Script : MonoBehaviour
 
     void Update()
     {
+        if (tileMap.GetTile(tileMap.WorldToCell(turnHandler.activePlayer.transform.position)).name.Contains("win"))
+        {
+            SceneManager.LoadScene("End_Scene", LoadSceneMode.Single);
+        }
         if (gui.mode == 0)
         {
             CursorFollowMouse();
-            if (Input.GetMouseButtonDown(0) /* || Input.GetMouseButton(0)*/)
+            if (Input.GetMouseButtonDown(0) || Input.GetMouseButton(0))
             {
-                Debug.Log(tileMap.WorldToCell(transform.position));
                 //Debug.Log("Player start: " + tileMap.WorldToCell(turnHandler.activePlayer.start));
                 /// This is just converting the Vector3 position of the cursor and player in the world to the cell position of
                 /// the tile they are currently on when the player clicks their left mouse button.
@@ -198,7 +206,6 @@ public class Tile_Selector_Script : MonoBehaviour
             /// This begins player movement by moving the player one tile at a time.
             if (turnHandler.activePlayer.pendingMoves > 0 && confirm && turnHandler.activePlayer.path.Count > 0)
             {
-                Debug.Log("test: " + Time.time);
                 turnHandler.activePlayer.MovePlayer();
             }
         }

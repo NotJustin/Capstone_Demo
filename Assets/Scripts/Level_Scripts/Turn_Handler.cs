@@ -54,7 +54,10 @@ public class Turn_Handler : MonoBehaviour
             Vector3Int playerCell = tileSelectorScript.tileMap.WorldToCell(activePlayer.transform.position);
             tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
             tileSelectorScript.tileMap.SetColor(playerCell, Color.magenta);
-            tileSelectorScript.HighlightNeighbors(playerCell);
+            if(activePlayer.moves > 0)
+            {
+                tileSelectorScript.HighlightNeighbors(playerCell);
+            }
         }
     }
 }
