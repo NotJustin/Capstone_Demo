@@ -71,6 +71,7 @@
     <Compile Include="Assets\_Complete-Game\Scripts\Player.cs" />
     <Compile Include="Assets\_Complete-Game\Scripts\SoundManager.cs" />
     <Compile Include="Assets\_Complete-Game\Scripts\Wall.cs" />
+    <Compile Include="Assets\Scripts\Level_Scripts\Card.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\guiScript.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Tile_Selector_Script.cs" />

@@ -17,7 +17,7 @@ public class TileMap : MonoBehaviour
     BoundsInt cellBounds;
     Vector3Int size;
     int zAxis = 0;
-
+    /*
     void Awake()
     {
         tileMap = GetComponent<Tilemap>();
@@ -32,10 +32,8 @@ public class TileMap : MonoBehaviour
                 TileBase tile = tileMap.GetTile(position);
                 if (CheckTile(tile))
                 {
-                    //Debug.Log(tile.name);
                     if (tile.name.Contains("spawn"))
                     {
-                        //Debug.Log("test");
                         world[x, y] = 2;
                     }
                     else if (tile.name.Contains("floor") || tile.name.Contains("wire"))
@@ -58,5 +56,5 @@ public class TileMap : MonoBehaviour
             return true;
         }
         return false;
-    }
+    }*/
 }

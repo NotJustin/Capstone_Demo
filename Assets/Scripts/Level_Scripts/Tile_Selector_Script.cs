@@ -5,7 +5,7 @@ using UnityEngine.Tilemaps;
 
 public class Tile_Selector_Script : MonoBehaviour
 {
-
+    const int spawn = 2;
     /// These are references to GameObjects in the Unity scene.
     /// I use them so that this script can interact with components on these game objects.
     /// When I declare a gameobject in this way, I have to open the GameObject that this script is attached to in Unity.
@@ -17,6 +17,7 @@ public class Tile_Selector_Script : MonoBehaviour
     /// However, if I want to get a component from the player GameObject, I have to type "player.GetComponent<NameOfComponent>();"
     public GameObject tileMapObj;
     public GameObject player;
+    public GameObject turnHandlerObj;
     public new GameObject camera;
     public TileBase floor_tile_asset;
 
@@ -26,225 +27,200 @@ public class Tile_Selector_Script : MonoBehaviour
     public Sprite red_cursor;
     public Sprite yellow_cursor;
     public Sprite green_cursor;
+    public Sprite red_other_cursor;
+    public Sprite yellow_other_cursor;
+    public Sprite green_other_cursor;
 
     /// These are some references to components from the objects in the scene.
     public Tilemap tileMap;
     guiScript gui;
     //Player playerData;
     private SpriteRenderer spriteRenderer;
-    public int[,] world; /* Commenting this and all related lines out because we aren't using it at the moment but might in the future */
+    public int[,] world;
+    Turn_Handler turnHandler;
 
     /// These are variables that I will be using in this script.
     /// If I want scripts on other GameObjects to use data from this script, it will likely be using one of these variables.
     /// As of now, the only one used in a different script is pendingMoves, which I use to display the number on the GUI.
     Vector3 mousePosition;
-    public Vector3Int playerCell;
-    static int zAxis = 0;
-    public bool started = false;
+    readonly int zAxis = 0;
     public bool confirm = false;
-    public int pendingMoves = 0;
-    bool moving = false;
-    Vector3 destination;
+    //Vector3 destination;
     float startTime;
     float totalDistance;
-    public Vector3Int start;
+    //public Vector3Int start;
 
     Vector3 undefinedVec3 = new Vector3(-1, -1, 0);
     Vector3Int undefinedVec3Int = new Vector3Int(-1, -1, 0);
 
     /// This is a list of the cells of the currently selected tiles. They are (x, y, z) coordinates, but since this is a 2D map they all have the same Z value.
-    List<Vector3Int> path;
+    //List<Vector3Int> path;
     private Vector3Int[] possibleTiles = new Vector3Int[4];
     List<Vector3Int> doors;
     List<Vector3Int> wires;
     Vector3Int[] spawns;
     int spawnAmount = 0;
 
+    BoundsInt cellBounds;
+    Vector3Int size;
+
+    void Awake()
+    {
+
+        tileMap = tileMapObj.GetComponent<Tilemap>();
+        tileMap.CompressBounds();
+        cellBounds = tileMap.cellBounds;
+        world = new int[tileMap.cellBounds.size.x, tileMap.cellBounds.size.y];
+        for (int x = 0; x < cellBounds.size.x; x++)
+        {
+            for (int y = 0; y < cellBounds.size.y; y++)
+            {
+                Vector3Int position = new Vector3Int(x, y, zAxis);
+                TileBase tile = tileMap.GetTile(position);
+                if (CheckTile2(tile))
+                {
+                    if (tile.name.Contains("spawn"))
+                    {
+                        world[x, y] = 2;
+                    }
+                    else if (tile.name.Contains("floor") || tile.name.Contains("wire"))
+                    {
+                        world[x, y] = 0;
+                    }
+                }
+                else
+                {
+                    world[x, y] = -1;
+                }
+            }
+        }
+    }
+
+    public bool CheckTile2(TileBase tile)
+    {
+        if (tile != null)
+        {
+            return true;
+        }
+        return false;
+    }
+
     void Start()
     {
-        /// Initializing the tileMap in this script by getting the tileMap component from the Tilemap object that "tileMapObj" is referencing.
-        /// Initializing the spriteRenderer in this script by getting the SpriteRenderer component from this object.
-        /// Initializing the playerData variable in this script by getting the Player component from the player object.
-        /// In the future, we will have to be more particular about the names as there will be more types of players/characters.
-        tileMap = tileMapObj.GetComponent<Tilemap>();
+        /// Getting components from other objects to refer to them in this script
         gui = camera.GetComponent<guiScript>();
-        world = tileMapObj.GetComponent<TileMap>().world;
         spriteRenderer = GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = yellow_cursor;
+        turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
 
-        /// Initializing the list by creating a new one.
-        path = new List<Vector3Int>();
+        /// Initializing lists/arrays by creating new ones.
+        //path = new List<Vector3Int>();
         doors = new List<Vector3Int>();
         wires = new List<Vector3Int>();
-        spawns = new Vector3Int[gui.players.transform.childCount];
+        spawns = new Vector3Int[turnHandler.players.transform.childCount];
 
+        /// Search the world for every tile that is a spawn tile, and 
         for (int x = 0; x < world.GetLength(0); x++)
         {
             for (int y = 0; y < world.GetLength(1); y++)
             {
-                //Debug.Log(world[x, y]);
-                if (spawnAmount < spawns.GetLength(0) && world[x, y] == 2)
+                if (spawnAmount < spawns.GetLength(0) && world[x, y] == spawn)
                 {
                     spawns[spawnAmount] = new Vector3Int(x, y, zAxis);
-                    Debug.Log(spawns[spawnAmount]);
                     spawnAmount++;
                 }
             }
         }
 
-        for (int i = 0; i < gui.players.transform.childCount; i++)
+        int arrayLength = spawns.GetLength(0);
+        
+        Vector3Int[] scrambledSpawns = new Vector3Int[spawns.GetLength(0)];
+
+        for (int i = 0; i < spawns.GetLength(0); i++)
         {
-            Debug.Log(gui.players.transform.GetChild(i));
-            Debug.Log(spawns[i]);
-            gui.players.transform.GetChild(i).transform.position = spawns[i];
+            int j = Random.Range(0, arrayLength);
+            scrambledSpawns[i] = spawns[j];
+            while (j + 1 < arrayLength)
+            {
+                spawns[j] = spawns[j + 1];
+                j++;
+            }
+            arrayLength--;
         }
 
-        playerCell = tileMap.WorldToCell(gui.playerData.transform.position);
-        tileMap.SetTileFlags(playerCell, TileFlags.None);
-        tileMap.SetColor(playerCell, Color.magenta);
-
-        // Setting possible-to-select tiles as those surrounding the player, if the player has moves
-        if (gui.playerData.moves > 0)
+        for (int i = 0; i < turnHandler.players.transform.childCount; i++)
         {
-            HighlightNeighbors(playerCell);
+            turnHandler.players.transform.GetChild(i).transform.position = scrambledSpawns[i];
         }
     }
 
     void Update()
     {
-        /// Making the cursor follow the mouse, while snapping to the grid. The grid is offset by 0.5, because the Unity scene editor has its pivot point at the center,
-        /// while the tiles we are using have their pivot points in one of the corners. The tiles are 1x1, so the distance from the center to the sides is 0.5.
-        /// that is why I had to make the cursor snap by a 0.5 unit offset in the x and y direction via the RoundOffset() function.
-        mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePosition.z = zAxis;
-        transform.position = new Vector3((RoundOffset(mousePosition.x)), (RoundOffset(mousePosition.y)), zAxis);
-
-        if (Input.GetMouseButtonDown(0)/* || Input.GetMouseButton(0)*/)
+        if (gui.mode == 0)
         {
-            /// This is just converting the Vector3 position of the cursor and player in the world to the cell position of
-            /// the tile they are currently on when the player clicks their left mouse button.
-            Vector3Int goal = tileMap.WorldToCell(transform.position);
-            /// If this statement is true, it adds the tile to the path. See CheckTile() for more info.
-            if (gui.playerData.moves > 0 && CheckTile(start, goal) && IsNeighbor(start, goal))
+            CursorFollowMouse();
+            if (Input.GetMouseButtonDown(0) /* || Input.GetMouseButton(0)*/)
             {
-                start = goal;
-                UnhighlightOldNeighbors();
-                /// Changes the tileflags to none so that we are able to change anything about the tile.
-                /// Then, changiing the color to red, adds it to the path list, and adjusts the number of remaining moves appropriately.
-                tileMap.SetTileFlags(goal, TileFlags.None);
-                Color color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
-                tileMap.SetColor(goal, color);
-                //spriteRenderer.sprite = green_cursor;
-                path.Add(goal);
-                --gui.playerData.moves;
-                ++pendingMoves;
-                if (gui.playerData.moves > 0)
+                Debug.Log(tileMap.WorldToCell(transform.position));
+                //Debug.Log("Player start: " + tileMap.WorldToCell(turnHandler.activePlayer.start));
+                /// This is just converting the Vector3 position of the cursor and player in the world to the cell position of
+                /// the tile they are currently on when the player clicks their left mouse button.
+                Vector3Int goal = tileMap.WorldToCell(transform.position);
+                /// If this statement is true, it adds the tile to the path. See CheckTile() for more info.
+                if (turnHandler.activePlayer.moves > 0 && CheckTile(turnHandler.activePlayer.start, goal) && IsNeighbor(turnHandler.activePlayer.start, goal))
                 {
-                    HighlightNeighbors(start);
+                    turnHandler.activePlayer.AddTileToPath(goal);
                 }
-            }
-            if (start == goal)
-            {
-                spriteRenderer.sprite = green_cursor;
+                if (turnHandler.activePlayer.start == goal)
+                {
+                    spriteRenderer.sprite = green_cursor;
+                }
+                else
+                {
+                    spriteRenderer.sprite = red_cursor;
+                }
             }
             else
             {
-                spriteRenderer.sprite = red_cursor;
+                spriteRenderer.sprite = yellow_cursor;
+            }
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                /// Does the opposite of above. It checks if the cell the cursor is on is the last tile you selected. If so, it removes it from the list.
+                /// In the future, I would want the "last selected tile" to be a different color so that people aren't forced to memorize what the last tile they selected is.
+                /// Then, if they remove that tile, the one before that will change color as it is the "new" last tile selected.
+                Vector3Int coordinate = tileMap.WorldToCell(transform.position);
+                turnHandler.activePlayer.RemoveTileFromPath(coordinate);
+            }
+
+            /// "confirm" is set true by the GUI script when the button is pressed.
+            /// "moving" is true if the player is currently moving, false otherwise.
+            /// This begins player movement by moving the player one tile at a time.
+            if (turnHandler.activePlayer.pendingMoves > 0 && confirm && turnHandler.activePlayer.path.Count > 0)
+            {
+                Debug.Log("test: " + Time.time);
+                turnHandler.activePlayer.MovePlayer();
             }
         }
         else
         {
-            spriteRenderer.sprite = yellow_cursor;
+            HideCursor();
         }
+    }
 
-        if (Input.GetMouseButtonDown(1))
-        {
-            /// Does the opposite of above. It checks if the cell the cursor is on is the last tile you selected. If so, it removes it from the list.
-            /// In the future, I would want the "last selected tile" to be a different color so that people aren't forced to memorize what the last tile they selected is.
-            /// Then, if they remove that tile, the one before that will change color as it is the "new" last tile selected.
-            Vector3Int coordinate = tileMap.WorldToCell(transform.position);
-            if (path.Count > 0 && coordinate == path[path.Count - 1])
-            {
-                UnhighlightOldNeighbors();
-                tileMap.SetColor(coordinate, Color.white);
-                path.RemoveAt(path.Count - 1);
-                gui.playerData.moves++;
-                pendingMoves--;
-                if(path.Count > 0)
-                {
-                    start = path[path.Count - 1];
-                    HighlightNeighbors(path[path.Count - 1]);
-                }
-                else
-                {
-                    start = playerCell;
-                    HighlightNeighbors(playerCell);
-                }
-            }
-        }
+    /// Making the cursor follow the mouse, while snapping to the grid. The grid is offset by 0.5, because the Unity scene editor has its pivot point at the center,
+    /// while the tiles we are using have their pivot points in one of the corners. The tiles are 1x1, so the distance from the center to the sides is 0.5.
+    /// that is why I had to make the cursor snap by a 0.5 unit offset in the x and y direction via the RoundOffset() function.
+    void CursorFollowMouse()
+    {
+        mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePosition.z = zAxis;
+        transform.position = new Vector3((RoundOffset(mousePosition.x)), (RoundOffset(mousePosition.y)), zAxis);
+    }
 
-        /// "confirm" is set true by the GUI script when the button is pressed.
-        /// "started" is true if the player is currently moving, false otherwise.
-        /// Setting up player movement.
-        if (pendingMoves > 0 && confirm && !started)
-        {
-            pendingMoves = 0;
-            for (int i = 0; i < path.Count; i++)
-            {
-                Color color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
-                tileMap.SetColor(path[i], color);
-            }
-            started = true;
-            moving = true;
-            destination = new Vector3(RoundOffset(path[0].x), RoundOffset(path[0].y), zAxis);
-            startTime = Time.time;
-            Debug.Log(gui.playerData.transform.position + " " + destination);
-            totalDistance = Vector3.Distance(gui.playerData.transform.position, destination);
-            tileMap.SetTileFlags(playerCell, TileFlags.None);
-            tileMap.SetColor(playerCell, Color.white);
-        }
-
-        /// This begins player movement by moving the player one tile at a time.
-        if (moving && confirm && path.Count > 0)
-        {
-            UnhighlightOldNeighbors();
-            gui.playerData.animator.Play("walking");
-            float distanceCovered, fractionOfJourney;
-            if (gui.playerData.transform.position != destination)
-            {
-                distanceCovered = (Time.time - startTime) * gui.playerData.playerSpeed;
-                fractionOfJourney = distanceCovered / totalDistance;
-                Debug.Log(totalDistance);
-                gui.playerData.transform.position = Vector3.Lerp(gui.playerData.transform.position, destination, fractionOfJourney);
-            }
-            if (gui.playerData.transform.position == destination)
-            {
-                OpenDoors(path[0]);
-                tileMap.SetTileFlags(path[0], TileFlags.None);
-                tileMap.SetColor(path[0], Color.white);
-                path.RemoveAt(0);
-                if (path.Count > 0)
-                {
-                    startTime = Time.time;
-                    destination = new Vector3(RoundOffset(path[0].x), RoundOffset(path[0].y), zAxis);
-                    totalDistance = Vector3.Distance(gui.playerData.transform.position, destination);
-                }
-                else
-                {
-                    gui.playerData.animator.Play("idle");
-                    moving = false;
-                    playerCell = tileMap.WorldToCell(gui.playerData.transform.position);
-                    tileMap.SetTileFlags(playerCell, TileFlags.None);
-                    tileMap.SetColor(playerCell, Color.magenta);
-                    confirm = false;
-                    started = false;
-                    if (gui.playerData.moves > 0)
-                    {
-                        HighlightNeighbors(playerCell);
-                    }
-                }
-            }
-        }
+    void HideCursor()
+    {
+        spriteRenderer.sprite = null;
     }
 
     /// Takes a float and rounds it to the nearest 0.5 decimal place.
@@ -277,41 +253,33 @@ public class Tile_Selector_Script : MonoBehaviour
     /// * it must be a neighbor of the previous tile in the path.
     public bool CheckTile(Vector3Int start, Vector3Int goal)
     {
-        //Debug.Log(tileMap.GetTile(undefinedVec3Int));
         TileBase goalTile = tileMap.GetTile(goal);
         TileBase startTile = tileMap.GetTile(start);
-        //Debug.Log(startTile.name);
-        //Debug.Log(goalTile.name);
-        //Debug.Log("goal: " + goal+ "| start: " + start);
-        if (goal == tileMap.WorldToCell(gui.playerData.transform.position) || path.Contains(goal))
+
+        if (goal == tileMap.WorldToCell(turnHandler.activePlayer.transform.position) || turnHandler.activePlayer.path.Contains(goal))
         {
             return false;
         }
         else if (goalTile == null || goalTile.name.Contains("wall") || goalTile.name.Contains("door"))
         {
-            //Debug.Log("wall/door/null");
             return false;
         }
         else if (startTile.name.Contains("barrier"))
         {
             if (startTile.name.Contains("left") && goal.x == start.x - 1)
             {
-                //Debug.Log("left");
                 return false;
             }
             else if (startTile.name.Contains("bottom") && goal.y == start.y - 1)
             {
-                //Debug.Log("bottom");
                 return false;
             }
             else if (startTile.name.Contains("right") && goal.x == start.x + 1)
             {
-                //Debug.Log("right");
                 return false;
             }
             else if (startTile.name.Contains("top") && goal.y == start.y + 1)
             {
-                //Debug.Log("top");
                 return false;
             }
         }
@@ -323,17 +291,14 @@ public class Tile_Selector_Script : MonoBehaviour
             }
             else if (goalTile.name.Contains("top") && goal.y == start.y - 1)
             {
-                //Debug.Log("bottom");
                 return false;
             }
             else if (goalTile.name.Contains("left") && goal.x == start.x + 1)
             {
-                //Debug.Log("right");
                 return false;
             }
             else if (goalTile.name.Contains("bottom") && goal.y == start.y + 1)
             {
-                //Debug.Log("top");
                 return false;
             }
         }
@@ -359,7 +324,6 @@ public class Tile_Selector_Script : MonoBehaviour
         Vector3Int right = new Vector3Int(start.x + 1, start.y, 0);
         Vector3Int above = new Vector3Int(start.x, start.y + 1, 0);
         Vector3Int below = new Vector3Int(start.x, start.y - 1, 0);
-        //Debug.Log("checking left");
         Color color = new Color(1.0f, 1.0f, 0.0f, 0.5f);
         if (CheckTile(start, left))
         {
@@ -367,21 +331,18 @@ public class Tile_Selector_Script : MonoBehaviour
             tileMap.SetTileFlags(left, TileFlags.None);
             tileMap.SetColor(left, color);
         }
-        //Debug.Log("checking right");
         if (CheckTile(start, right))
         {
             possibleTiles[1] = right;
             tileMap.SetTileFlags(right, TileFlags.None);
             tileMap.SetColor(right, color);
         }
-        //Debug.Log("checking top");
         if (CheckTile(start, above))
         {
             possibleTiles[2] = above;
             tileMap.SetTileFlags(above, TileFlags.None);
             tileMap.SetColor(above, color);
         }
-        //Debug.Log("checking bottom");
         if (CheckTile(start, below))
         {
             possibleTiles[3] = below;
@@ -400,22 +361,6 @@ public class Tile_Selector_Script : MonoBehaviour
                 possibleTiles[i] = undefinedVec3Int;
             }
         }
-    }
-
-    public void ClearPath()
-    {
-        UnhighlightOldNeighbors();
-        pendingMoves = 0;
-        playerCell = tileMap.WorldToCell(gui.playerData.transform.position);
-        tileMap.SetTileFlags(playerCell, TileFlags.None);
-        tileMap.SetColor(playerCell, Color.white);
-        foreach (Vector3Int coordinate in path)
-        {
-            tileMap.SetTileFlags(coordinate, TileFlags.None);
-            tileMap.SetColor(coordinate, Color.white);
-            gui.playerData.moves++;
-        }
-        path.Clear();
     }
 
     public void OpenDoors(Vector3Int start)

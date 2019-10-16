@@ -6,72 +6,44 @@ using UnityEngine.Tilemaps;
 public class guiScript : MonoBehaviour
 {
     /// The script takes information from Player, displays it on the screen, and communicates to the Tile_Selector_Script whenever the user interacts with the button.
-    public GameObject players;
     public GameObject tileSelector;
 
-    public Player playerData;
+    Turn_Handler turnHandler;
     Tile_Selector_Script tileSelectorScript;
+
+    public int mode;
 
     void Start()
     {
-        players = GameObject.FindGameObjectWithTag("Players");
+        mode = 0;
+        turnHandler = GetComponent<Turn_Handler>();
         tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
-        tileSelectorScript.playerCell = tileSelectorScript.tileMap.WorldToCell(playerData.transform.position);
-        tileSelectorScript.start = tileSelectorScript.playerCell;
+        //tileSelectorScript.playerCell = tileSelectorScript.tileMap.WorldToCell(turnHandler.activePlayer.transform.position);
+        //tileSelectorScript.start = tileSelectorScript.playerCell;
     }
 
     void OnGUI()
     {
-        if (!tileSelectorScript.started && GUI.Button(new Rect(10, 50, 100, 20), "Confirm moves"))
+        if (!turnHandler.activePlayer.moving && GUI.Button(new Rect(5, (20 + 5), 100, 40), "Confirm moves"))
         {
-            if (playerData != null && tileSelectorScript.pendingMoves > 0)
+            if (turnHandler.activePlayer != null && turnHandler.activePlayer.pendingMoves > 0)
             {
                 tileSelectorScript.confirm = true;
             }
         }
 
-        if (!tileSelectorScript.started && GUI.Button(new Rect(10, 70, 100, 20), "Select Player 1"))
+        if (!turnHandler.activePlayer.moving && GUI.Button(new Rect(5, (80 + 5), 100, 40), "Toggle Mode"))
         {
-            if (playerData != null)
-            {
-                tileSelectorScript.ClearPath();
-                playerData.selected = false;
-            }
-            playerData = players.transform.GetChild(0).GetComponent<Player>();
-            if (playerData.moves > 0)
-            {
-                tileSelectorScript.HighlightNeighbors(tileSelectorScript.tileMap.WorldToCell(playerData.transform.position));
-            }
-            tileSelectorScript.playerCell = tileSelectorScript.tileMap.WorldToCell(playerData.transform.position);
-            tileSelectorScript.start = tileSelectorScript.playerCell;
-            tileSelectorScript.tileMap.SetTileFlags(tileSelectorScript.playerCell, TileFlags.None);
-            tileSelectorScript.tileMap.SetColor(tileSelectorScript.start, Color.magenta);
-            playerData.selected = true;
+            mode = mode>0 ? 0:1;
         }
 
-        if (!tileSelectorScript.started && GUI.Button(new Rect(10, 90, 100, 20), "Select Player 2"))
+        if (!turnHandler.activePlayer.moving && GUI.Button(new Rect(5, (140 + 5), 100, 40), "End turn"))
         {
-            if (playerData != null)
-            {
-                tileSelectorScript.ClearPath();
-                playerData.selected = false;
-            }
-            playerData = players.transform.GetChild(1).GetComponent<Player>();
-            if (playerData.moves > 0)
-            {
-                tileSelectorScript.HighlightNeighbors(tileSelectorScript.tileMap.WorldToCell(playerData.transform.position));
-            }
-            tileSelectorScript.playerCell = tileSelectorScript.tileMap.WorldToCell(playerData.transform.position);
-            tileSelectorScript.start = tileSelectorScript.playerCell;
-            tileSelectorScript.tileMap.SetTileFlags(tileSelectorScript.playerCell, TileFlags.None);
-            tileSelectorScript.tileMap.SetColor(tileSelectorScript.start, Color.magenta);
-            playerData.selected = true;
+            turnHandler.changeTurn = true;
         }
 
-        if (playerData != null)
-        {
-            GUI.Label(new Rect(10, 10, 200, 20), "Moves remaining: " + playerData.moves);
-            GUI.Label(new Rect(10, 30, 200, 20), "Moves pending: " + tileSelectorScript.pendingMoves);
-        }
+        GUI.Label(new Rect(160, 70, 200, 20), "Moves remaining: " + turnHandler.activePlayer.moves);
+        GUI.Label(new Rect(160, 90, 200, 20), "Moves pending: " + turnHandler.activePlayer.pendingMoves);
+        GUI.Label(new Rect(160, 110, 200, 20), "Selected: " + turnHandler.activePlayer.transform.name);
     }
 }
