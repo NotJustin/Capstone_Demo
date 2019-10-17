@@ -17,7 +17,6 @@ public class Tile_Selector_Script : MonoBehaviour
     /// You can imagine there is an implicit "this" in front of GetComponent, like: "this.GetComponent<SpriteRenderer>();".
     /// However, if I want to get a component from the player GameObject, I have to type "player.GetComponent<NameOfComponent>();"
     public GameObject tileMapObj;
-    public GameObject player;
     public GameObject turnHandlerObj;
     public new GameObject camera;
     public TileBase floor_tile_asset;

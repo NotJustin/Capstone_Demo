@@ -63,19 +63,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\_Complete-Game\Scripts\BoardManager.cs" />
-    <Compile Include="Assets\_Complete-Game\Scripts\Enemy.cs" />
-    <Compile Include="Assets\_Complete-Game\Scripts\GameManager.cs" />
-    <Compile Include="Assets\_Complete-Game\Scripts\Loader.cs" />
-    <Compile Include="Assets\_Complete-Game\Scripts\MovingObject.cs" />
-    <Compile Include="Assets\_Complete-Game\Scripts\Player.cs" />
-    <Compile Include="Assets\_Complete-Game\Scripts\SoundManager.cs" />
-    <Compile Include="Assets\_Complete-Game\Scripts\Wall.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Card.cs" />
+    <Compile Include="Assets\Scripts\Level_Scripts\Enemies.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\guiScript.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Tile_Selector_Script.cs" />
-    <Compile Include="Assets\Scripts\Level_Scripts\TileMap.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Turn_Handler.cs" />
     <Compile Include="Assets\Scripts\Menu_Scripts\GUI_buttons.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />

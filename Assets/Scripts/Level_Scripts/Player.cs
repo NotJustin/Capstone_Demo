@@ -176,4 +176,10 @@ public class Player : MonoBehaviour
         path.Clear();
         start = tileSelectorScript.tileMap.WorldToCell(transform.position);
     }
+
+    public void StartTurn()
+    {
+        Debug.Log("test");
+        moves = maxMoves;
+    }
 }
