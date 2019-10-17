@@ -5,9 +5,11 @@ using UnityEngine.Tilemaps;
 
 public class Turn_Handler : MonoBehaviour
 {
-    public List<Player> playerList;
-
     public GameObject players;
+    public GameObject enemies;
+
+    public List<Player> playerList;
+    public List<IEnemy> enemyList;
 
     private int remainingPlayerTurns;
     private int enemyTurn;
@@ -21,6 +23,13 @@ public class Turn_Handler : MonoBehaviour
     {
         tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
         playerList = new List<Player>();
+        enemyList = new List<IEnemy>();
+
+        foreach (Transform child in enemies.transform)
+        {
+            IEnemy enemy = child.GetComponent<IEnemy>();
+        }
+
         Vector3Int playerCell;
         foreach (Transform child in players.transform)
         {
