@@ -36,7 +36,7 @@ public class Tile_Selector_Script : MonoBehaviour
     guiScript gui;
     //Player playerData;
     private SpriteRenderer spriteRenderer;
-    public TileStruct[,] world;
+    public int[,] world;
     Turn_Handler turnHandler;
 
     /// These are variables that I will be using in this script.
@@ -67,6 +67,12 @@ public class Tile_Selector_Script : MonoBehaviour
     public struct TileStruct
     {
         public int type;
+        /*
+         * -1 = wall
+         * 0 = floor
+         * 1 = 'win'
+         * 2 = door
+         */
         public int heuristic;
     }
 
@@ -75,7 +81,7 @@ public class Tile_Selector_Script : MonoBehaviour
         tileMap = tileMapObj.GetComponent<Tilemap>();
         tileMap.CompressBounds();
         cellBounds = tileMap.cellBounds;
-        world = new TileStruct[tileMap.cellBounds.size.x, tileMap.cellBounds.size.y];
+        world = new int[tileMap.cellBounds.size.x, tileMap.cellBounds.size.y];
         for (int x = 0; x < cellBounds.size.x; x++)
         {
             for (int y = 0; y < cellBounds.size.y; y++)
@@ -86,20 +92,21 @@ public class Tile_Selector_Script : MonoBehaviour
                 {
                     if (tile.name.Contains("spawn"))
                     {
-                        world[x, y].type = 2;
+                        world[x, y] = 2;
                     }
                     else if(tile.name.Contains("win"))
                     {
-                        world[x, y].type = 1; 
+                        world[x, y] = 1; 
                     }
                     else if (tile.name.Contains("floor") || tile.name.Contains("wire"))
                     {
-                        world[x, y].type = 0;
+                        world[x, y] = 0;
                     }
                 }
                 else
                 {
-                    world[x, y].type = -1;
+                    // wall or no tile
+                    world[x, y] = -1;
                 }
             }
         }
@@ -132,7 +139,7 @@ public class Tile_Selector_Script : MonoBehaviour
         {
             for (int y = 0; y < world.GetLength(1); y++)
             {
-                if (spawnAmount < spawns.GetLength(0) && world[x, y].type == spawn)
+                if (spawnAmount < spawns.GetLength(0) && world[x, y] == spawn)
                 {
                     spawns[spawnAmount] = new Vector3Int(x, y, zAxis);
                     spawnAmount++;

@@ -71,6 +71,7 @@
     <Compile Include="Assets\Scripts\Menu_Scripts\GUI_buttons.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\TutorialInfo.cs" />
+    <None Include="Assets\Scripts\Level_Scripts\enemies_temp.cs.txt" />
     <None Include="Assets\TutorialInfo\Fonts\LICENSE.txt" />
     <None Include="Assets\Fonts\OFL.txt" />
     <Reference Include="Unity.Timeline.Editor">
