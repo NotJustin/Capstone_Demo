@@ -67,6 +67,7 @@
     <Compile Include="Assets\Scripts\Level_Scripts\Enemies.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\guiScript.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Player.cs" />
+    <Compile Include="Assets\Scripts\Level_Scripts\ThrasherScript.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Tile_Selector_Script.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Turn_Handler.cs" />
     <Compile Include="Assets\Scripts\Menu_Scripts\GUI_buttons.cs" />
