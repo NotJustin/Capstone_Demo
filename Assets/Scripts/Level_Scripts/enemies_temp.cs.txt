@@ -1,0 +1,130 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Tilemaps;
+
+public abstract class IEnemy
+{
+    GameObject turnHandlerObj;
+    GameObject tileSelectorObj;
+    int health;
+    GameObject enemy;
+    Tilemap tileMap;
+    public IEnemy(int _health, GameObject _enemy)
+    {
+        turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
+        tileSelectorObj = GameObject.FindGameObjectWithTag("TileSelector");
+        health = _health;
+        enemy = _enemy;
+    }
+    void AttackOne()
+    {
+
+    }
+    void AttackTwo()
+    {
+
+    }
+    void AttackThree()
+    {
+
+    }
+    public int[,] createH(int [,]board, int startX, int startY,int goalX, int goalY)
+    {
+        int x = 0;
+        int y = 0;
+        int numOfSteps = 0;
+        int[,] boardH = new int[board.GetLength(0), board.GetLength(1)];
+        board.CopyTo(boardH,0);
+
+        while (x < board.GetLength(0))
+        {
+            while (y < board.GetLength(1))
+            {
+                int tempX = x;
+                int tempY = y;
+                while (tempX < goalX)
+                {
+                    tempX++;
+                    numOfSteps++;
+                }
+                while (tempX > goalX)
+                {
+                    tempX--;
+                    numOfSteps++;
+                }
+                while (tempY < goalY)
+                {
+                    tempY++;
+                    numOfSteps++;
+                }
+                while (tempY > goalY)
+                {
+                    tempY--;
+                    numOfSteps++;
+                }
+                boardH[x, y] = numOfSteps;
+                numOfSteps = 0;
+                y++;
+            }
+            y = 0;
+            x++;
+        }
+        return boardH;
+    }
+    public List<Vector3Int> FindPathToNearestPlayer()
+    {
+        List<Player> playerList = turnHandlerObj.GetComponent<Turn_Handler>().playerList;
+        List<Vector3Int> path = new List<Vector3Int>();
+        tileMap = tileSelectorObj.GetComponent<Tile_Selector_Script>().tileMap;
+        int[,] world = tileSelectorObj.GetComponent<Tile_Selector_Script>().world;
+        float enemyX = enemy.transform.position.x;
+        float enemyY = enemy.transform.position.y;
+
+        foreach (Player player in playerList)
+        {
+            float playerX = player.transform.position.x;
+            float playerY = player.transform.position.y;
+
+            int[,] temp = createH(world, (int)enemyX, (int)enemyY, (int)playerX, (int)playerY);
+
+
+        }
+
+            //List<Vector3Int> path = new List<Vector3Int>();
+            //path.Add(new Vector3Int(x, y, 0));
+            return path;
+    }
+}
+public class Thrasher : IEnemy
+{
+    public Thrasher(int health, GameObject obj) : base(health, obj)
+    {
+
+    }
+    public void AttackOne()
+    {
+
+    }
+    public void AttackTwo()
+    {
+
+    }
+    public void AttackThree()
+    {
+
+    }
+}
+public class Enemies : MonoBehaviour
+{
+    public List<IEnemy> enemies;
+    void Start()
+    {
+        
+    }
+
+    void Update()
+    {
+        
+    }
+}

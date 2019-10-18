@@ -7,11 +7,12 @@ public class Turn_Handler : MonoBehaviour
 {
     public GameObject players;
     public GameObject enemies;
-    public Enemies enemyScript;
 
     public List<Player> playerList;
     public List<IEnemy> enemyList;
 
+    private int remainingPlayerTurns;
+    private int enemyTurn;
     public Player activePlayer;
     public bool changeTurn = false;
 
@@ -21,9 +22,13 @@ public class Turn_Handler : MonoBehaviour
     void Start()
     {
         tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
-        enemyScript = enemies.GetComponent<Enemies>();
         playerList = new List<Player>();
         enemyList = new List<IEnemy>();
+
+        foreach (Transform child in enemies.transform)
+        {
+            IEnemy enemy = child.GetComponent<IEnemy>();
+        }
 
         Vector3Int playerCell;
         foreach (Transform child in players.transform)
@@ -45,19 +50,8 @@ public class Turn_Handler : MonoBehaviour
         }
     }
 
-    bool started = false;
     void Update()
     {
-        if (!started && Time.time > 1)
-        {
-            Debug.Log("test");
-            started = true;
-            foreach (IEnemy enemy in enemyScript.enemies)
-            {
-                enemy.AttackOne();
-            }
-        }
-
         if (changeTurn)
         {
             /// Set changeTurn to false because we used it to get into this conditional and don't want to do it again.
