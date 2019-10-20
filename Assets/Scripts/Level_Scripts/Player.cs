@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.SceneManagement;
 
+
 public class Player : MonoBehaviour
 {
     /// This script corrects the player's initial position to snap to the grid
@@ -179,7 +180,6 @@ public class Player : MonoBehaviour
 
     public void StartTurn()
     {
-        Debug.Log("test");
         moves = maxMoves;
     }
 }

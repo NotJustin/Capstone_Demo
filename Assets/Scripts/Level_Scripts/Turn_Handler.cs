@@ -8,27 +8,25 @@ public class Turn_Handler : MonoBehaviour
     public GameObject players;
     public GameObject enemies;
 
+    public Enemies enemyScript;
+
     public List<Player> playerList;
     public List<IEnemy> enemyList;
 
     private int remainingPlayerTurns;
-    private int enemyTurn;
     public Player activePlayer;
     public bool changeTurn = false;
 
     public GameObject tileSelector;
     Tile_Selector_Script tileSelectorScript;
 
+    public Player firstPlayer;
     void Start()
     {
         tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
         playerList = new List<Player>();
         enemyList = new List<IEnemy>();
-
-        foreach (Transform child in enemies.transform)
-        {
-            IEnemy enemy = child.GetComponent<IEnemy>();
-        }
+        enemyList = enemies.GetComponent<Enemies>().enemies;
 
         Vector3Int playerCell;
         foreach (Transform child in players.transform)
@@ -38,6 +36,7 @@ public class Turn_Handler : MonoBehaviour
             player.start = tileSelectorScript.tileMap.WorldToCell(player.transform.position);
         }
         activePlayer = playerList[0];
+        firstPlayer = activePlayer;
         //playerList.RemoveAt(0);
         playerCell = tileSelectorScript.tileMap.WorldToCell(activePlayer.transform.position);
         tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
@@ -50,6 +49,7 @@ public class Turn_Handler : MonoBehaviour
         }
     }
 
+    public bool enemyTurn = false;
     void Update()
     {
         if (changeTurn)
@@ -77,5 +77,25 @@ public class Turn_Handler : MonoBehaviour
             /// Highlight the neighboring cells as yellow tiles.
             tileSelectorScript.HighlightNeighbors(playerCell);
         }
+        if (enemyTurn)
+        {
+            EnemyTurn();
+        }
+        if (enemyList[0].awaitMovement)
+        {
+            transform.position = new Vector3(enemyList[0].obj.transform.position.x, enemyList[0].obj.transform.position.y, -10);
+            enemyList[0].MoveAlongPath(enemyList[0].range);
+        }
+        else
+        {
+            transform.position = new Vector3(activePlayer.transform.position.x, activePlayer.transform.position.y, -10);
+        }
+    }
+
+    public void EnemyTurn()
+    {
+        enemyList[0].AttackOne();
+        enemyList.Add(enemyList[0]);
+        enemyList.RemoveAt(0);
     }
 }

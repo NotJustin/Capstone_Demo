@@ -7,6 +7,7 @@ public class guiScript : MonoBehaviour
 {
     /// The script takes information from Player, displays it on the screen, and communicates to the Tile_Selector_Script whenever the user interacts with the button.
     public GameObject tileSelector;
+    public GameObject menu;
 
     Turn_Handler turnHandler;
     Tile_Selector_Script tileSelectorScript;
@@ -24,6 +25,7 @@ public class guiScript : MonoBehaviour
 
     void OnGUI()
     {
+        menu.transform.position = new Vector3(transform.position.x, transform.position.y - 8, 0);
         if (!turnHandler.activePlayer.moving && GUI.Button(new Rect(5, (20 + 5), 100, 40), "Confirm moves"))
         {
             if (turnHandler.activePlayer != null && turnHandler.activePlayer.pendingMoves > 0)
@@ -39,11 +41,11 @@ public class guiScript : MonoBehaviour
 
         if (!turnHandler.activePlayer.moving && GUI.Button(new Rect(5, (140 + 5), 100, 40), "End turn"))
         {
-            turnHandler.changeTurn = true;
+            turnHandler.EnemyTurn();
         }
 
-        GUI.Label(new Rect(160, 70, 200, 20), "Moves remaining: " + turnHandler.activePlayer.moves);
-        GUI.Label(new Rect(160, 90, 200, 20), "Moves pending: " + turnHandler.activePlayer.pendingMoves);
-        GUI.Label(new Rect(160, 110, 200, 20), "Selected: " + turnHandler.activePlayer.transform.name);
+        GUI.Label(new Rect(5, 180, 200, 20), "Moves remaining: " + turnHandler.activePlayer.moves);
+        GUI.Label(new Rect(5, 200, 200, 20), "Moves pending: " + turnHandler.activePlayer.pendingMoves);
+        GUI.Label(new Rect(5, 220, 200, 20), "Selected: " + turnHandler.activePlayer.transform.name);
     }
 }

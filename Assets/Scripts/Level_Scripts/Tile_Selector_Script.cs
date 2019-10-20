@@ -4,6 +4,22 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.SceneManagement;
 
+
+public class TileClass
+{
+    public int type;
+    public int f;
+    public int g;
+    public int h;
+    public int room;
+    public TileClass parent;
+    public Vector3Int coordinate;
+
+    public TileClass()
+    {
+
+    }
+}
 public class Tile_Selector_Script : MonoBehaviour
 {
     const int spawn = 2;
@@ -36,7 +52,7 @@ public class Tile_Selector_Script : MonoBehaviour
     guiScript gui;
     //Player playerData;
     private SpriteRenderer spriteRenderer;
-    public int[,] world;
+    public TileClass[,] world;
     Turn_Handler turnHandler;
 
     /// These are variables that I will be using in this script.
@@ -64,61 +80,51 @@ public class Tile_Selector_Script : MonoBehaviour
     BoundsInt cellBounds;
     Vector3Int size;
 
-    public struct TileStruct
-    {
-        public int type;
-        /*
-         * -1 = wall
-         * 0 = floor
-         * 1 = 'win'
-         * 2 = door
-         */
-        public int heuristic;
-    }
-
     void Awake()
     {
+        int roomX = 8;
+        int roomY = 8;
         tileMap = tileMapObj.GetComponent<Tilemap>();
         tileMap.CompressBounds();
         cellBounds = tileMap.cellBounds;
-        world = new int[tileMap.cellBounds.size.x, tileMap.cellBounds.size.y];
-        for (int x = 0; x < cellBounds.size.x; x++)
+        world = new TileClass[tileMap.cellBounds.size.x, tileMap.cellBounds.size.y];
+        for (int x = 0; x < world.GetLength(0); x++)
         {
-            for (int y = 0; y < cellBounds.size.y; y++)
+            for (int y = 0; y < world.GetLength(1); y++)
             {
-                Vector3Int position = new Vector3Int(x, y, zAxis);
-                TileBase tile = tileMap.GetTile(position);
-                if (CheckTile2(tile))
+                world[x, y] = new TileClass();
+                world[x, y].coordinate = new Vector3Int(x, y, zAxis);
+                TileBase tile = tileMap.GetTile(world[x, y].coordinate);
+                int horizontalIndex = x / roomX + 1;
+                int verticalIndex = y / roomY + 1;
+                int horizontalOffset = (x / roomX) * (world.GetLength(1) / roomX);
+                world[x, y].room = horizontalIndex + verticalIndex + horizontalOffset - 1;
+                if (x % roomX == 0 || y % roomY == 0)
+                {
+                    world[x, y].room = 0;
+                }
+                if (!(tile == null))
                 {
                     if (tile.name.Contains("spawn"))
                     {
-                        world[x, y] = 2;
+                        world[x, y].type = 2;
                     }
                     else if(tile.name.Contains("win"))
                     {
-                        world[x, y] = 1; 
+                        world[x, y].type = 1; 
                     }
                     else if (tile.name.Contains("floor") || tile.name.Contains("wire"))
                     {
-                        world[x, y] = 0;
+                        world[x, y].type = 0;
                     }
                 }
                 else
                 {
                     // wall or no tile
-                    world[x, y] = -1;
+                    world[x, y].type = -1;
                 }
             }
         }
-    }
-
-    public bool CheckTile2(TileBase tile)
-    {
-        if (tile != null)
-        {
-            return true;
-        }
-        return false;
     }
 
     void Start()
@@ -139,7 +145,7 @@ public class Tile_Selector_Script : MonoBehaviour
         {
             for (int y = 0; y < world.GetLength(1); y++)
             {
-                if (spawnAmount < spawns.GetLength(0) && world[x, y] == spawn)
+                if (spawnAmount < spawns.GetLength(0) && world[x, y].type == spawn)
                 {
                     spawns[spawnAmount] = new Vector3Int(x, y, zAxis);
                     spawnAmount++;
@@ -502,6 +508,108 @@ public class Tile_Selector_Script : MonoBehaviour
             prev = start;
             ChangeDoors(below, prev);
         }
+    }
+
+
+    public int GetHeuristic(TileClass start, TileClass goal)
+    {
+        return Mathf.Abs(start.coordinate.x - goal.coordinate.x) + Mathf.Abs(start.coordinate.y - goal.coordinate.y);
+    }
+
+    public bool UpdateF(TileClass current, List<TileClass> open, List<TileClass> closed, TileClass goal)
+    {
+        TileClass previous = closed[closed.Count - 1];
+        if (!closed.Contains(current) && (current.type == 0 || current.type == 1 || current.type == 2))
+        {
+            if(!open.Contains(current))
+            {
+                current.parent = previous;
+                current.g = 1 + previous.g;
+                current.h = GetHeuristic(current, goal);
+                current.f = current.g + current.h;
+                return true;
+            }
+            else if (current.g > 1 + previous.g)
+            {
+                current.parent = previous;
+                current.g = 1 + previous.g;
+                current.f = current.g + current.h;
+                open.Remove(current);
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    public bool BuildPathAStar(TileClass start, TileClass goal)
+    {
+        List<TileClass> open = new List<TileClass>();
+        List<TileClass> closed = new List<TileClass>();
+        open.Add(start);
+        start.parent = null;
+        start.g = 0;
+        bool foundGoal = false;
+        List<TileClass> adjacent = new List<TileClass>();
+        int count = 0;
+        while (open.Count > 0)
+        {
+            if (open[0] == goal)
+            {
+                foundGoal = true;
+                break;
+            }
+            closed.Add(open[0]);
+            open.RemoveAt(0);
+
+            if (!(tileMap.GetTile(new Vector3Int(closed[closed.Count - 1].coordinate.x - 1, closed[closed.Count - 1].coordinate.y, zAxis)) == null))
+            {
+                adjacent.Add(world[closed[closed.Count - 1].coordinate.x - 1, closed[closed.Count - 1].coordinate.y]);
+            }
+            if (!(tileMap.GetTile(new Vector3Int(closed[closed.Count - 1].coordinate.x + 1, closed[closed.Count - 1].coordinate.y, zAxis)) == null))
+            {
+                adjacent.Add(world[closed[closed.Count - 1].coordinate.x + 1, closed[closed.Count - 1].coordinate.y]);
+            }
+            if (!(tileMap.GetTile(new Vector3Int(closed[closed.Count - 1].coordinate.x, closed[closed.Count - 1].coordinate.y + 1, zAxis)) == null))
+            {
+                adjacent.Add(world[closed[closed.Count - 1].coordinate.x, closed[closed.Count - 1].coordinate.y + 1]);
+            }
+            if (!(tileMap.GetTile(new Vector3Int(closed[closed.Count - 1].coordinate.x, closed[closed.Count - 1].coordinate.y - 1, zAxis)) == null))
+            {
+                adjacent.Add(world[closed[closed.Count - 1].coordinate.x, closed[closed.Count - 1].coordinate.y - 1]);
+            }
+            foreach(TileClass tile in adjacent)
+            {
+                if (count == 0)
+                {
+                    open.Add(tile);
+                    count++;
+                }
+                else if (UpdateF(tile, open, closed, goal))
+                {
+                    bool added = false;
+                    for (int i = 0; i < open.Count; i++)
+                    {
+                        if (tile.f < open[i].f)
+                        {
+                            open.Insert(i, tile);
+                            added = true;
+                            break;
+                        }
+                    }
+                    if (!added)
+                    {
+                        open.Add(tile);
+                    }
+                }
+            }
+            adjacent.Clear();
+        }
+        if (foundGoal)
+        {
+            return true;
+        }
+        return false;
     }
 
     /// EVERYTHING BELOW IS UNUSED CURRENTLY. UNCOMMENTING WILL CAUSE ERRORS
