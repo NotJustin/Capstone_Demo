@@ -117,10 +117,14 @@ public class Tile_Selector_Script : MonoBehaviour
                     {
                         world[x, y].type = 0;
                     }
+                    else if (tile.name.Contains("wall") || tile.name.Contains("barrier"))
+                    {
+                        world[x, y].type = -1;
+                    }
                 }
                 else
                 {
-                    // wall or no tile
+                    // no tile
                     world[x, y].type = -1;
                 }
             }
@@ -519,7 +523,7 @@ public class Tile_Selector_Script : MonoBehaviour
     public bool UpdateF(TileClass current, List<TileClass> open, List<TileClass> closed, TileClass goal)
     {
         TileClass previous = closed[closed.Count - 1];
-        if (!closed.Contains(current) && (current.type == 0 || current.type == 1 || current.type == 2))
+        if (!closed.Contains(current))
         {
             if(!open.Contains(current))
             {
@@ -542,6 +546,37 @@ public class Tile_Selector_Script : MonoBehaviour
         return false;
     }
 
+    void PopulateAdjacentArray(List<TileClass> adjacent, TileClass tile)
+    {
+        if (!(tileMap.GetTile(new Vector3Int(tile.coordinate.x - 1, tile.coordinate.y, zAxis)) == null))
+        {
+            if (world[tile.coordinate.x - 1, tile.coordinate.y].type != -1)
+            {
+                adjacent.Add(world[tile.coordinate.x - 1, tile.coordinate.y]);
+            }
+        }
+        if (!(tileMap.GetTile(new Vector3Int(tile.coordinate.x + 1, tile.coordinate.y, zAxis)) == null))
+        {
+            if (world[tile.coordinate.x + 1, tile.coordinate.y].type != -1)
+            {
+                adjacent.Add(world[tile.coordinate.x + 1, tile.coordinate.y]);
+            }
+        }
+        if (!(tileMap.GetTile(new Vector3Int(tile.coordinate.x, tile.coordinate.y + 1, zAxis)) == null))
+        {
+            if (world[tile.coordinate.x, tile.coordinate.y + 1].type != -1)
+            {
+                adjacent.Add(world[tile.coordinate.x, tile.coordinate.y + 1]);
+            }
+        }
+        if (!(tileMap.GetTile(new Vector3Int(tile.coordinate.x, tile.coordinate.y - 1, zAxis)) == null))
+        {
+            if (world[tile.coordinate.x, tile.coordinate.y - 1].type != -1)
+            {
+                adjacent.Add(world[tile.coordinate.x, tile.coordinate.y - 1]);
+            }
+        }
+    }
     public bool BuildPathAStar(TileClass start, TileClass goal)
     {
         List<TileClass> open = new List<TileClass>();
@@ -550,8 +585,8 @@ public class Tile_Selector_Script : MonoBehaviour
         start.parent = null;
         start.g = 0;
         bool foundGoal = false;
+        bool firstIteration = true;
         List<TileClass> adjacent = new List<TileClass>();
-        int count = 0;
         while (open.Count > 0)
         {
             if (open[0] == goal)
@@ -561,29 +596,14 @@ public class Tile_Selector_Script : MonoBehaviour
             }
             closed.Add(open[0]);
             open.RemoveAt(0);
-
-            if (!(tileMap.GetTile(new Vector3Int(closed[closed.Count - 1].coordinate.x - 1, closed[closed.Count - 1].coordinate.y, zAxis)) == null))
-            {
-                adjacent.Add(world[closed[closed.Count - 1].coordinate.x - 1, closed[closed.Count - 1].coordinate.y]);
-            }
-            if (!(tileMap.GetTile(new Vector3Int(closed[closed.Count - 1].coordinate.x + 1, closed[closed.Count - 1].coordinate.y, zAxis)) == null))
-            {
-                adjacent.Add(world[closed[closed.Count - 1].coordinate.x + 1, closed[closed.Count - 1].coordinate.y]);
-            }
-            if (!(tileMap.GetTile(new Vector3Int(closed[closed.Count - 1].coordinate.x, closed[closed.Count - 1].coordinate.y + 1, zAxis)) == null))
-            {
-                adjacent.Add(world[closed[closed.Count - 1].coordinate.x, closed[closed.Count - 1].coordinate.y + 1]);
-            }
-            if (!(tileMap.GetTile(new Vector3Int(closed[closed.Count - 1].coordinate.x, closed[closed.Count - 1].coordinate.y - 1, zAxis)) == null))
-            {
-                adjacent.Add(world[closed[closed.Count - 1].coordinate.x, closed[closed.Count - 1].coordinate.y - 1]);
-            }
+            PopulateAdjacentArray(adjacent, closed[closed.Count - 1]);
+            
             foreach(TileClass tile in adjacent)
             {
-                if (count == 0)
+                if (firstIteration)
                 {
                     open.Add(tile);
-                    count++;
+                    firstIteration = false;
                 }
                 else if (UpdateF(tile, open, closed, goal))
                 {

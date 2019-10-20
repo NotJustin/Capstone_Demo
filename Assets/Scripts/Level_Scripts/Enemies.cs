@@ -53,7 +53,7 @@ public abstract class IEnemy
             Vector3Int goal = tileMap.WorldToCell(player.transform.position);
             if (world[start.x, start.y].room == world[goal.x, goal.y].room)
             {
-                if(tileSelectorScript.BuildPathAStar(world[start.x, start.y], world[goal.x, goal.y]))
+                if (tileSelectorScript.BuildPathAStar(world[start.x, start.y], world[goal.x, goal.y]))
                 {
                     TileClass temp = world[goal.x, goal.y];
                     while (temp.parent != null)
@@ -61,7 +61,15 @@ public abstract class IEnemy
                         currentPath.Add(temp);
                         temp = temp.parent;
                     }
+                    if (temp.parent == null)
+                    {
+                        currentPath.Add(temp);
+                    }
                     currentPath.Reverse();
+                }
+                else
+                {
+                    return null;
                 }
                 if (closestPath == null)
                 {
@@ -88,18 +96,36 @@ public abstract class IEnemy
     float totalDistance;
     public float playerSpeed;
     float zAxis = 0;
+    bool weirdFix = true;
     public void MoveAlongPath(float range)
     {
+        if (path == null)
+        {
+            Debug.Log("no path exists");
+            moving = false;
+            awaitMovement = false;
+            turnHandlerObj.GetComponent<Turn_Handler>().enemyTurn = false;
+            turnHandlerObj.GetComponent<Turn_Handler>().changeTurn = true;
+            return;
+        }
         if (path.Count > 0 && !moving)
         {
+            if (weirdFix)
+            {
+                weirdFix = false;
+                destination = new Vector3(RoundOffset(path[0].coordinate.x), RoundOffset(path[0].coordinate.y), zAxis);
+            }
+            else
+            {
+                path.RemoveAt(0);
+                destination = new Vector3(RoundOffset(path[0].coordinate.x), RoundOffset(path[0].coordinate.y), zAxis);
+            }
             moving = true;
             startTime = Time.time;
-            destination = new Vector3(RoundOffset(path[0].coordinate.x), RoundOffset(path[0].coordinate.y), zAxis);
             totalDistance = Mathf.Abs(obj.transform.position.x - destination.x) + Mathf.Abs(obj.transform.position.y - destination.y);
         }
         else if(path.Count > 0 && InRange(range, obj.transform.position, tileMap.CellToWorld(path[path.Count - 1].coordinate)))
         {
-            Debug.Log("in range");
             moving = false;
             awaitMovement = false;
             turnHandlerObj.GetComponent<Turn_Handler>().enemyTurn = false;
@@ -129,7 +155,7 @@ public abstract class IEnemy
                 }
                 else
                 {
-                    Debug.Log("Reached destination");
+                    //weirdFix = true;
                     moving = false;
                     awaitMovement = false;
                     turnHandlerObj.GetComponent<Turn_Handler>().enemyTurn = false;
@@ -168,10 +194,10 @@ public class Thrasher : IEnemy
     public override void AttackOne()
     {
         Debug.Log("Starting Attack One");
-        List<TileClass> path = FindPathToNearestPlayer();
         awaitMovement = true;
-        moves = 2;
+        moves = 4;
         range = 1.0f;
+        List<TileClass> path = FindPathToNearestPlayer();
         MoveAlongPath(range);
     }
     new public void AttackTwo()
