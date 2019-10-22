@@ -25,7 +25,7 @@ public class Turn_Handler : MonoBehaviour
     {
         tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
         playerList = new List<Player>();
-        enemyList = new List<IEnemy>();
+        enemyList = //new List<IEnemy>();
         enemyList = enemies.GetComponent<Enemies>().enemies;
 
         Vector3Int playerCell;
@@ -37,7 +37,6 @@ public class Turn_Handler : MonoBehaviour
         }
         activePlayer = playerList[0];
         firstPlayer = activePlayer;
-        //playerList.RemoveAt(0);
         playerCell = tileSelectorScript.tileMap.WorldToCell(activePlayer.transform.position);
         tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
         tileSelectorScript.tileMap.SetColor(playerCell, Color.magenta);
@@ -49,13 +48,20 @@ public class Turn_Handler : MonoBehaviour
         }
     }
 
-    public bool enemyTurn = false;
+    //bool enemyTurn = false;
+
     void Update()
     {
         if (changeTurn)
         {
+            enemyList.Add(enemyList[0]);
+            enemyList.RemoveAt(0);
+            Debug.Log("Changing turn");
             /// Set changeTurn to false because we used it to get into this conditional and don't want to do it again.
             changeTurn = false;
+            //enemyTurn = true;
+            /// Unhighlights any yellow tiles
+            tileSelectorScript.UnhighlightOldNeighbors();
             /// Unhighlights any yellow tiles
             tileSelectorScript.UnhighlightOldNeighbors();
             /// Unhighlights all selected tiles
@@ -64,38 +70,32 @@ public class Turn_Handler : MonoBehaviour
             playerList.Add(activePlayer);
             /// Remove the current activePlayer from the front of the list
             playerList.RemoveAt(0);
-            /// Set activePlayer to be the new front of the list
-            activePlayer = playerList[0];
-            /// Get the coordinate of the activePlayer's cell on the tileMap
-            Vector3Int playerCell = tileSelectorScript.tileMap.WorldToCell(activePlayer.transform.position);
-            /// Set the flags to none so that we can change the color to magenta
-            tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
-            /// Change the tile's color to magenta
-            tileSelectorScript.tileMap.SetColor(playerCell, Color.magenta);
-            /// Increment/reset things related to this character since their turn is just beginning now.
-            activePlayer.StartTurn();
-            /// Highlight the neighboring cells as yellow tiles.
-            tileSelectorScript.HighlightNeighbors(playerCell);
-        }
-        if (enemyTurn)
-        {
-            EnemyTurn();
+            //enemyTurn = false;
+            if (!enemyList[0].awaitMovement)
+            {
+                /// Set activePlayer to be the new front of the list
+                activePlayer = playerList[0];
+                /// Get the coordinate of the activePlayer's cell on the tileMap
+                Vector3Int playerCell = tileSelectorScript.tileMap.WorldToCell(activePlayer.transform.position);
+                /// Set the flags to none so that we can change the color to magenta
+                tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
+                /// Change the tile's color to magenta
+                tileSelectorScript.tileMap.SetColor(playerCell, Color.magenta);
+                /// Increment/reset things related to this character since their turn is just beginning now.
+                activePlayer.StartTurn();
+                /// Highlight the neighboring cells as yellow tiles.
+                tileSelectorScript.HighlightNeighbors(playerCell);
+            }
         }
         if (enemyList[0].awaitMovement)
         {
             transform.position = new Vector3(enemyList[0].obj.transform.position.x, enemyList[0].obj.transform.position.y, -10);
-            enemyList[0].MoveAlongPath(enemyList[0].range);
+            enemyList[0].AttackOne();
         }
         else
         {
+            //Debug.Log(enemyList.Count);
             transform.position = new Vector3(activePlayer.transform.position.x, activePlayer.transform.position.y, -10);
         }
-    }
-
-    public void EnemyTurn()
-    {
-        enemyList[0].AttackOne();
-        enemyList.Add(enemyList[0]);
-        enemyList.RemoveAt(0);
     }
 }

@@ -14,14 +14,23 @@ public abstract class IEnemy
     List<Player> playerList;
     TileClass[,] world;
     public bool awaitMovement;
-    List<TileClass> path;
+    public bool startedMoving;
+    public bool attacked;
     public int moves;
+    public int prevMoves;
     public float range;
+    public List<TileClass> path;
     public IEnemy(int _health, GameObject _obj)
     {
         health = _health;
         obj = _obj;
         playerSpeed = 1.0f;
+        attacked = false;
+        awaitMovement = false;
+        startedMoving = false;
+        turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
+        tileSelectorObj = GameObject.FindGameObjectWithTag("TileSelector");
+        tileSelectorScript = tileSelectorObj.GetComponent<Tile_Selector_Script>();
     }
     public virtual void AttackOne()
     {
@@ -38,14 +47,21 @@ public abstract class IEnemy
 
     public List<TileClass> FindPathToNearestPlayer()
     {
-        turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
-        tileSelectorObj = GameObject.FindGameObjectWithTag("TileSelector");
-        tileSelectorScript = tileSelectorObj.GetComponent<Tile_Selector_Script>();
+        //Debug.Log("Finding nearest path");
         tileMap = tileSelectorScript.tileMap;
         world = tileSelectorScript.world;
+
+        /// setting all parents to null before creating paths because otherwise infinite loop problems occur.
+        for (int x = 0; x < world.GetLength(0); x++)
+        {
+            for (int y = 0; y < world.GetLength(1); y++)
+            {
+                world[x, y].parent = null;
+            }
+        }
+        playerList = turnHandlerObj.GetComponent<Turn_Handler>().playerList;
         List<TileClass> closestPath = null;
         List<TileClass> currentPath = new List<TileClass>();
-        playerList = turnHandlerObj.GetComponent<Turn_Handler>().playerList;
         foreach (Player player in playerList)
         {
             currentPath.Clear();
@@ -69,7 +85,7 @@ public abstract class IEnemy
                 }
                 else
                 {
-                    return null;
+                    continue;
                 }
                 if (closestPath == null)
                 {
@@ -84,9 +100,24 @@ public abstract class IEnemy
         }
         if (closestPath == null)
         {
+            currentPath.Clear();
+            currentPath = null;
             return null;
         }
-        path = new List<TileClass>(closestPath);
+        currentPath.Clear();
+        currentPath = null;
+        for (int i = 0; i < closestPath.Count; i++)
+        {
+            if (closestPath[i].coordinate == tileMap.WorldToCell(new Vector3(obj.transform.position.x + 0.5f, obj.transform.position.y + 0.5f, zAxis)))
+            {
+                Debug.Log("removing shit");
+                if (closestPath[i].parent != null)
+                {
+                    closestPath[i].parent = null;
+                }
+                closestPath.RemoveAt(i);
+            }
+        }
         return closestPath;
     }
 
@@ -96,40 +127,39 @@ public abstract class IEnemy
     float totalDistance;
     public float playerSpeed;
     float zAxis = 0;
-    bool weirdFix = true;
-    public void MoveAlongPath(float range)
+    public int MoveAlongPath(List<TileClass> path, float range, int moves)
     {
         if (path == null)
         {
-            Debug.Log("no path exists");
             moving = false;
             awaitMovement = false;
-            turnHandlerObj.GetComponent<Turn_Handler>().enemyTurn = false;
+            startedMoving = false;
             turnHandlerObj.GetComponent<Turn_Handler>().changeTurn = true;
-            return;
+            return 0;
         }
         if (path.Count > 0 && !moving)
         {
-            if (weirdFix)
-            {
-                weirdFix = false;
-                destination = new Vector3(RoundOffset(path[0].coordinate.x), RoundOffset(path[0].coordinate.y), zAxis);
-            }
-            else
-            {
-                path.RemoveAt(0);
-                destination = new Vector3(RoundOffset(path[0].coordinate.x), RoundOffset(path[0].coordinate.y), zAxis);
-            }
+            destination = tileMap.CellToWorld(path[0].coordinate);
+            destination = new Vector3(RoundOffset(destination.x), RoundOffset(destination.y), destination.z);
             moving = true;
             startTime = Time.time;
+            if (obj.transform.position == destination)
+            {
+                path[0].parent = null;
+                path.RemoveAt(0);
+                destination = tileMap.CellToWorld(path[0].coordinate);
+                destination = new Vector3(RoundOffset(destination.x), RoundOffset(destination.y), destination.z);
+            }
             totalDistance = Mathf.Abs(obj.transform.position.x - destination.x) + Mathf.Abs(obj.transform.position.y - destination.y);
-        }
-        else if(path.Count > 0 && InRange(range, obj.transform.position, tileMap.CellToWorld(path[path.Count - 1].coordinate)))
-        {
-            moving = false;
-            awaitMovement = false;
-            turnHandlerObj.GetComponent<Turn_Handler>().enemyTurn = false;
-            turnHandlerObj.GetComponent<Turn_Handler>().changeTurn = true;
+            if (path.Count > 0 && InRange(path, range))
+            {
+                moving = false;
+                awaitMovement = false;
+                startedMoving = false;
+                turnHandlerObj.GetComponent<Turn_Handler>().changeTurn = true;
+                return 0;
+            }
+            return moves;
         }
         else
         {
@@ -139,9 +169,11 @@ public abstract class IEnemy
                 distanceCovered = (Time.time - startTime) * playerSpeed;
                 fractionOfJourney = distanceCovered / totalDistance;
                 obj.transform.position = Vector3.Lerp(obj.transform.position, destination, fractionOfJourney);
+                return moves;
             }
             else
             {
+                moving = false;
                 moves--;
                 if (path.Count > 0)
                 {
@@ -150,16 +182,17 @@ public abstract class IEnemy
                 if (!(path.Count == 0 || moves == 0))
                 {
                     startTime = Time.time;
-                    destination = new Vector3(RoundOffset(path[0].coordinate.x), RoundOffset(path[0].coordinate.y), zAxis);
-                    totalDistance = Vector3.Distance(obj.transform.position, destination);
+                    destination = new Vector3(path[0].coordinate.x, path[0].coordinate.y, zAxis);
+                    totalDistance = Mathf.Abs(RoundOffset(obj.transform.position.x) - destination.x) + Mathf.Abs(RoundOffset(obj.transform.position.x) - destination.y);
+                    return moves;
                 }
                 else
                 {
-                    //weirdFix = true;
-                    moving = false;
                     awaitMovement = false;
-                    turnHandlerObj.GetComponent<Turn_Handler>().enemyTurn = false;
+                    startedMoving = false;
                     turnHandlerObj.GetComponent<Turn_Handler>().changeTurn = true;
+                    path.Clear();
+                    return 0;
                 }
             }
         }
@@ -179,9 +212,9 @@ public abstract class IEnemy
 
     }
 
-    public bool InRange(float range, Vector3 start, Vector3 goal)
+    public bool InRange(List<TileClass> path, float range)
     {
-        return Mathf.Abs((start.x - 0.5f) - goal.x) + Mathf.Abs((start.y - 0.5f) - goal.y) <= range;
+        return path.Count <= range;
     }
 }
 
@@ -193,12 +226,31 @@ public class Thrasher : IEnemy
     }
     public override void AttackOne()
     {
-        Debug.Log("Starting Attack One");
-        awaitMovement = true;
-        moves = 4;
-        range = 1.0f;
-        List<TileClass> path = FindPathToNearestPlayer();
-        MoveAlongPath(range);
+        if (!attacked)
+        {
+            Debug.Log("attacking");
+            range = 3.0f;
+            attacked = true;
+        }
+        if (!startedMoving)
+        {
+            awaitMovement = true;
+            startedMoving = true;
+            moves = 2;
+            prevMoves = 2;
+            path = FindPathToNearestPlayer();
+            MoveAlongPath(path, range, moves);
+        }
+        else
+        {
+            moves = MoveAlongPath(path, range, moves);
+        }
+        if (moves == 0)
+        {
+            prevMoves = 2;
+            moves = 2;
+            path.Clear();
+        }
     }
     new public void AttackTwo()
     {
@@ -223,6 +275,8 @@ public class Enemies : MonoBehaviour
         foreach (Transform child in transform)
         {
             enemies.Add(new Thrasher(3, child.gameObject));
+            //Debug.Log("child gameobject = " + child.gameObject);
+            child.position = new Vector3(RoundOffset(child.position.x), RoundOffset(child.position.y), child.position.z);
         }
     }
 
@@ -233,6 +287,20 @@ public class Enemies : MonoBehaviour
 
     void Update()
     {
+
+    }
+
+    public float RoundOffset(float a)
+    {
+        int b = Mathf.RoundToInt(a);
+        if (b > a)
+        {
+            return b - 0.5f;
+        }
+        else
+        {
+            return b + 0.5f;
+        }
 
     }
 }

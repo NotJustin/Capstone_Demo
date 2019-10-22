@@ -517,7 +517,7 @@ public class Tile_Selector_Script : MonoBehaviour
 
     public int GetHeuristic(TileClass start, TileClass goal)
     {
-        return Mathf.Abs(start.coordinate.x - goal.coordinate.x) + Mathf.Abs(start.coordinate.y - goal.coordinate.y);
+        return (int) Vector3.Distance(start.coordinate, goal.coordinate);
     }
 
     public bool UpdateF(TileClass current, List<TileClass> open, List<TileClass> closed, TileClass goal)
