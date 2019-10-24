@@ -17,41 +17,37 @@ public class Turn_Handler : MonoBehaviour
     public Player activePlayer;
     public bool changeTurn = false;
 
-    public GameObject tileSelector;
-    Tile_Selector_Script tileSelectorScript;
+    public GameObject tileWorldObj;
+    TileWorld tileWorld;
 
     public Player firstPlayer;
-    void Start()
-    {
-        tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
-        playerList = new List<Player>();
-        enemyList = //new List<IEnemy>();
-        enemyList = enemies.GetComponent<Enemies>().enemies;
 
-        Vector3Int playerCell;
+    public bool confirm = false;
+
+    public void Initialize()
+    {
+        tileWorld = tileWorldObj.GetComponent<TileWorld>();
+        playerList = new List<Player>();
+        enemyList = enemies.GetComponent<Enemies>().enemies;
         foreach (Transform child in players.transform)
         {
             Player player = child.GetComponent<Player>();
             playerList.Add(player);
-            player.start = tileSelectorScript.tileMap.WorldToCell(player.transform.position);
+            player.start = tileWorld.world.WorldToCell(player.transform.position);
         }
         activePlayer = playerList[0];
         firstPlayer = activePlayer;
-        playerCell = tileSelectorScript.tileMap.WorldToCell(activePlayer.transform.position);
-        tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
-        tileSelectorScript.tileMap.SetColor(playerCell, Color.magenta);
-
-        /// Setting possible-to-select tiles as those surrounding the player, if the player has moves
-        if (activePlayer.moves > 0)
-        {
-            tileSelectorScript.HighlightNeighbors(playerCell);
-        }
+    }
+    void Start()
+    {
+        
     }
 
     //bool enemyTurn = false;
 
     void Update()
     {
+        //Debug.Log(activePlayer);
         if (changeTurn)
         {
             enemyList.Add(enemyList[0]);
@@ -61,9 +57,9 @@ public class Turn_Handler : MonoBehaviour
             changeTurn = false;
             //enemyTurn = true;
             /// Unhighlights any yellow tiles
-            tileSelectorScript.UnhighlightOldNeighbors();
+            tileWorld.UnhighlightOldNeighbors();
             /// Unhighlights any yellow tiles
-            tileSelectorScript.UnhighlightOldNeighbors();
+            tileWorld.UnhighlightOldNeighbors();
             /// Unhighlights all selected tiles
             activePlayer.ClearPath();
             /// Add the current activePlayer to the end of the list
@@ -76,15 +72,15 @@ public class Turn_Handler : MonoBehaviour
                 /// Set activePlayer to be the new front of the list
                 activePlayer = playerList[0];
                 /// Get the coordinate of the activePlayer's cell on the tileMap
-                Vector3Int playerCell = tileSelectorScript.tileMap.WorldToCell(activePlayer.transform.position);
+                Vector3Int playerCell = tileWorld.world.WorldToCell(activePlayer.transform.position);
                 /// Set the flags to none so that we can change the color to magenta
-                tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
+                tileWorld.world.SetTileFlags(playerCell, TileFlags.None);
                 /// Change the tile's color to magenta
-                tileSelectorScript.tileMap.SetColor(playerCell, Color.magenta);
+                tileWorld.world.SetColor(playerCell, Color.magenta);
                 /// Increment/reset things related to this character since their turn is just beginning now.
                 activePlayer.StartTurn();
                 /// Highlight the neighboring cells as yellow tiles.
-                tileSelectorScript.HighlightNeighbors(playerCell);
+                tileWorld.HighlightNeighbors(playerCell);
             }
         }
         if (enemyList[0].awaitMovement)
@@ -95,7 +91,12 @@ public class Turn_Handler : MonoBehaviour
         else
         {
             //Debug.Log(enemyList.Count);
+            //Debug.Log(activePlayer);
             transform.position = new Vector3(activePlayer.transform.position.x, activePlayer.transform.position.y, -10);
+            if (confirm && activePlayer.pendingMoves > 0 && activePlayer.path.Count > 0)
+            {
+                activePlayer.MovePlayer();
+            }
         }
     }
 }

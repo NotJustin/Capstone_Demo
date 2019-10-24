@@ -6,11 +6,9 @@ using UnityEngine.Tilemaps;
 public class guiScript : MonoBehaviour
 {
     /// The script takes information from Player, displays it on the screen, and communicates to the Tile_Selector_Script whenever the user interacts with the button.
-    public GameObject tileSelector;
     public GameObject menu;
 
     Turn_Handler turnHandler;
-    Tile_Selector_Script tileSelectorScript;
 
     public int mode;
 
@@ -18,9 +16,6 @@ public class guiScript : MonoBehaviour
     {
         mode = 0;
         turnHandler = GetComponent<Turn_Handler>();
-        tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
-        //tileSelectorScript.playerCell = tileSelectorScript.tileMap.WorldToCell(turnHandler.activePlayer.transform.position);
-        //tileSelectorScript.start = tileSelectorScript.playerCell;
     }
 
     void OnGUI()
@@ -30,7 +25,7 @@ public class guiScript : MonoBehaviour
         {
             if (turnHandler.activePlayer != null && turnHandler.activePlayer.pendingMoves > 0)
             {
-                tileSelectorScript.confirm = true;
+                turnHandler.confirm = true;
             }
         }
 

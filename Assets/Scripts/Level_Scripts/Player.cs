@@ -12,8 +12,8 @@ public class Player : MonoBehaviour
     float zAxis = 0;
     public Animator animator;
     public Vector3 lastPosition;
-    GameObject tileSelector;
-    public Tile_Selector_Script tileSelectorScript;
+    GameObject tileWorldObj;
+    public TileWorld tileWorld;
 
     public int maxMoves = 2;
     public int moves = 2;
@@ -29,24 +29,18 @@ public class Player : MonoBehaviour
     public float startTime;
     public float totalDistance;
 
+    public GameObject turnHandlerObj;
+    public Turn_Handler turnHandler;
+
     public List<Vector3Int> path;
     void Start()
     {
-        tileSelector = GameObject.FindGameObjectWithTag("TileSelector");
-        tileSelectorScript = tileSelector.GetComponent<Tile_Selector_Script>();
+        tileWorldObj = GameObject.FindGameObjectWithTag("TileWorld");
+        turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
+        turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
+        tileWorld = tileWorldObj.GetComponent<TileWorld>();
         animator = GetComponent<Animator>();
-        start = tileSelectorScript.tileMap.WorldToCell(transform.position);
         lastPosition = new Vector3(-1, -1, 0);
-    }
-
-    private void FixedUpdate()
-    {
-        if (!started && lastPosition != transform.position)
-        {
-            started = true;
-            transform.position = new Vector3(RoundOffset(transform.position.x), RoundOffset(transform.position.y), zAxis);
-            lastPosition = transform.position;
-        }
     }
 
     public float RoundOffset(float a)
@@ -63,43 +57,49 @@ public class Player : MonoBehaviour
 
     }
 
+    public void AdjustStartingPosition()
+    {
+        transform.position = new Vector3(RoundOffset(transform.position.x), RoundOffset(transform.position.y), zAxis);
+        lastPosition = transform.position;
+    }
+
     public void AddTileToPath(Vector3Int goal)
     {
         start = goal;
-        tileSelectorScript.UnhighlightOldNeighbors();
+        tileWorld.UnhighlightOldNeighbors();
         /// Changes the tileflags to none so that we are able to change anything about the tile.
         /// Then, changiing the color to red, adds it to the path list, and adjusts the number of remaining moves appropriately.
-        tileSelectorScript.tileMap.SetTileFlags(goal, TileFlags.None);
+        tileWorld.world.SetTileFlags(goal, TileFlags.None);
         Color color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
-        tileSelectorScript.tileMap.SetColor(goal, color);
+        tileWorld.world.SetColor(goal, color);
         //spriteRenderer.sprite = green_cursor;
         path.Add(goal);
         --moves;
         ++pendingMoves;
         if (moves > 0)
         {
-            tileSelectorScript.HighlightNeighbors(start);
+            tileWorld.HighlightNeighbors(start);
         }
     }
     public void RemoveTileFromPath(Vector3Int coordinate)
     {
         if (path.Count > 0 && coordinate == path[path.Count - 1])
         {
-            tileSelectorScript.UnhighlightOldNeighbors();
-            tileSelectorScript.tileMap.SetColor(coordinate, Color.white);
+            tileWorld.UnhighlightOldNeighbors();
+            tileWorld.world.SetColor(coordinate, Color.white);
             path.RemoveAt(path.Count - 1);
             moves++;
             pendingMoves--;
             if (path.Count > 0)
             {
                 start = path[path.Count - 1];
-                tileSelectorScript.HighlightNeighbors(path[path.Count - 1]);
+                tileWorld.HighlightNeighbors(path[path.Count - 1]);
             }
             else
             {
-                Vector3Int playerCell = tileSelectorScript.tileMap.WorldToCell(transform.position);
+                Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
                 start = playerCell;
-                tileSelectorScript.HighlightNeighbors(playerCell);
+                tileWorld.HighlightNeighbors(playerCell);
             }
         }
     }
@@ -108,19 +108,19 @@ public class Player : MonoBehaviour
     {
         if (!moving)
         {
-            tileSelectorScript.UnhighlightOldNeighbors();
+            tileWorld.UnhighlightOldNeighbors();
             for (int i = 0; i < path.Count; i++)
             {
                 Color color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
-                tileSelectorScript.tileMap.SetColor(path[i], color);
+                tileWorld.world.SetColor(path[i], color);
             }
             moving = true;
             startTime = Time.time;
             destination = new Vector3(RoundOffset(path[0].x), RoundOffset(path[0].y), zAxis);
             totalDistance = Vector3.Distance(transform.position, destination);
-            Vector3Int playerCell = tileSelectorScript.tileMap.WorldToCell(transform.position);
-            tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
-            tileSelectorScript.tileMap.SetColor(playerCell, Color.white);
+            Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
+            tileWorld.world.SetTileFlags(playerCell, TileFlags.None);
+            tileWorld.world.SetColor(playerCell, Color.white);
         }
         else
         {
@@ -134,9 +134,9 @@ public class Player : MonoBehaviour
             }
             if (transform.position == destination)
             {
-                tileSelectorScript.OpenDoors(path[0]);
-                tileSelectorScript.tileMap.SetTileFlags(path[0], TileFlags.None);
-                tileSelectorScript.tileMap.SetColor(path[0], Color.white);
+                tileWorld.OpenDoors(path[0]);
+                tileWorld.world.SetTileFlags(path[0], TileFlags.None);
+                tileWorld.world.SetColor(path[0], Color.white);
                 path.RemoveAt(0);
                 if (path.Count > 0)
                 {
@@ -149,13 +149,13 @@ public class Player : MonoBehaviour
                     pendingMoves = 0;
                     animator.Play("idle");
                     moving = false;
-                    Vector3Int playerCell = tileSelectorScript.tileMap.WorldToCell(transform.position);
-                    tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
-                    tileSelectorScript.tileMap.SetColor(playerCell, Color.magenta);
-                    tileSelectorScript.confirm = false;
+                    Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
+                    tileWorld.world.SetTileFlags(playerCell, TileFlags.None);
+                    tileWorld.world.SetColor(playerCell, Color.magenta);
+                    turnHandler.confirm = false;
                     if (moves > 0)
                     {
-                        tileSelectorScript.HighlightNeighbors(playerCell);
+                        tileWorld.HighlightNeighbors(playerCell);
                     }
                 }
             }
@@ -163,19 +163,19 @@ public class Player : MonoBehaviour
     }
     public void ClearPath()
     {
-        tileSelectorScript.UnhighlightOldNeighbors();
+        tileWorld.UnhighlightOldNeighbors();
         pendingMoves = 0;
-        Vector3Int playerCell = tileSelectorScript.tileMap.WorldToCell(transform.position);
-        tileSelectorScript.tileMap.SetTileFlags(playerCell, TileFlags.None);
-        tileSelectorScript.tileMap.SetColor(playerCell, Color.white);
+        Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
+        tileWorld.world.SetTileFlags(playerCell, TileFlags.None);
+        tileWorld.world.SetColor(playerCell, Color.white);
         foreach (Vector3Int coordinate in path)
         {
-            tileSelectorScript.tileMap.SetTileFlags(coordinate, TileFlags.None);
-            tileSelectorScript.tileMap.SetColor(coordinate, Color.white);
+            tileWorld.world.SetTileFlags(coordinate, TileFlags.None);
+            tileWorld.world.SetColor(coordinate, Color.white);
             moves++;
         }
         path.Clear();
-        start = tileSelectorScript.tileMap.WorldToCell(transform.position);
+        start = tileWorld.world.WorldToCell(transform.position);
     }
 
     public void StartTurn()
