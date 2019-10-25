@@ -32,6 +32,8 @@ public class Player : MonoBehaviour
     public GameObject turnHandlerObj;
     public Turn_Handler turnHandler;
 
+    public TileRoom tileRoom;
+
     public List<Vector3Int> path;
     void Start()
     {
@@ -41,6 +43,70 @@ public class Player : MonoBehaviour
         tileWorld = tileWorldObj.GetComponent<TileWorld>();
         animator = GetComponent<Animator>();
         lastPosition = new Vector3(-1, -1, 0);
+    }
+
+    bool updating = false;
+
+    void Update()
+    {
+        /*Debug.Log("player at x: " + Mathf.Round(transform.position.x * 10) / 10);
+        Debug.Log("player at y: " + Mathf.Round(transform.position.y * 10) / 10);
+        Debug.Log("tile i want at x: " + RoundOffset(tileRoom.startX + 9));
+        Debug.Log("tile i want at x: " + RoundOffset(tileRoom.startX - 1));
+        Debug.Log("tile i want at x: " + RoundOffset(tileRoom.startX + 1));
+        Debug.Log("tile i want at y: " + RoundOffset(tileRoom.startY + 9));
+        Debug.Log("tile i want at y: " + RoundOffset(tileRoom.startY - 1));
+        Debug.Log("tile i want at y: " + RoundOffset(tileRoom.startY + 1));*/
+        /*if (!(Mathf.Round(transform.position.x * 100) / 100 == RoundOffset(tileRoom.startX - 1) ||
+            Mathf.Round(transform.position.x * 100) / 100 == RoundOffset(tileRoom.startX + 1) ||
+            Mathf.Round(transform.position.x * 100) / 100 == RoundOffset(tileRoom.startX + 9) ||
+            Mathf.Round(transform.position.y * 100) / 100 == RoundOffset(tileRoom.startY + 9) ||
+            Mathf.Round(transform.position.y * 100) / 100 == RoundOffset(tileRoom.startY - 1) ||
+            Mathf.Round(transform.position.y * 100) / 100 == RoundOffset(tileRoom.startY + 1)))
+        {
+            //Debug.Log("no longer updating");
+            updating = false;
+        }
+
+        if (!updating && (Mathf.Round(transform.position.x * 10) / 10 == RoundOffset(tileRoom.startX - 1) ||
+            Mathf.Round(transform.position.x * 10) / 10 == RoundOffset(tileRoom.startX + 1) ||
+            Mathf.Round(transform.position.x * 10) / 10 == RoundOffset(tileRoom.startX + 9) ||
+            Mathf.Round(transform.position.y * 10) / 10 == RoundOffset(tileRoom.startY + 9) ||
+            Mathf.Round(transform.position.y * 10) / 10 == RoundOffset(tileRoom.startY - 1) ||
+            Mathf.Round(transform.position.y * 10) / 10 == RoundOffset(tileRoom.startY + 1)))
+        {
+            updating = true;
+            Debug.Log("updating room");
+            UpdateRoom();
+        }*/
+    }
+
+    public void UpdateRoom()
+    {
+        bool pleaseExit = false;
+        for (int j = 0; j < tileWorld.rooms.Count; j++)
+        {
+            if (pleaseExit)
+            {
+                break;
+            }
+            for (int x = 0; x < tileWorld.rooms[j].roomSize; x++)
+            {
+                if (pleaseExit)
+                {
+                    break;
+                }
+                for (int y = 0; y < tileWorld.rooms[j].roomSize; y++)
+                {
+                    if (new Vector3(RoundOffset(tileWorld.rooms[j].tiles[x, y].position.x), RoundOffset(tileWorld.rooms[j].tiles[x, y].position.y), zAxis) == transform.position)
+                    {
+                        tileRoom = tileWorld.rooms[j];
+                        pleaseExit = true;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     public float RoundOffset(float a)
@@ -134,7 +200,8 @@ public class Player : MonoBehaviour
             }
             if (transform.position == destination)
             {
-                tileWorld.OpenDoors(path[0]);
+                UpdateRoom();
+                tileWorld.OpenDoors(this);
                 tileWorld.world.SetTileFlags(path[0], TileFlags.None);
                 tileWorld.world.SetColor(path[0], Color.white);
                 path.RemoveAt(0);

@@ -29,7 +29,7 @@ public class TileRoom
     public int number;
     public Tilemap map;
     public Tilemap world;
-    int roomSize = 7;
+    public int roomSize = 7;
     public int startX, startY;
     public TileRoom up, down, left, right;
     int x, y;
@@ -40,7 +40,9 @@ public class TileRoom
         map = _map;
         number = _number;
         tiles = new TileClass[roomSize, roomSize];
-        GenerateTileList(map, x, y);
+        startX = _x;
+        startY = _y;
+        GenerateTileList(map, startX, startY);
         up = null;
         down = null;
         left = null;
@@ -48,13 +50,13 @@ public class TileRoom
         x = _x;
         y = _y;
     }
-    TileClass AddTile(int _number, int x, int startX, int y, int startY)
+    TileClass AddTile(int _number, int x, int y)
     {
         TileClass tile = new TileClass();
         tile.room = number;
         tile.cell = new Vector3Int(x + startX + 1, y + startY + 1, 0);
-        tile.position = map.CellToWorld(tile.cell);
-        tile.tileBase = map.GetTile(tile.cell);
+        //tile.position = map.CellToWorld(tile.cell);
+        tile.tileBase = map.GetTile(new Vector3Int(x + 1, y + 1, 0));
         return tile;
     }
     public void GenerateTileList(Tilemap _map, int _startX, int _startY)
@@ -69,7 +71,7 @@ public class TileRoom
         {
             for (int y = 0; y < roomSize; y++)
             {
-                tiles[x, y] = AddTile(number, x, startX, y, startY);
+                tiles[x, y] = AddTile(number, x, y);
                 if (tiles[x, y].tileBase != null)
                 {
                     if (tiles[x, y].tileBase.name.Contains("spawn"))
@@ -101,17 +103,17 @@ public class TileRoom
     {
         foreach (TileClass tile in tiles)
         {
-            world.SetTile(tile.cell, empty_tile_asset);
+            world.SetTile(new Vector3Int(startX + tile.cell.x, startY + tile.cell.y, 0), empty_tile_asset);
         }
-        world.RefreshAllTiles();
     }
     public void ShowRoom()
     {
         foreach (TileClass tile in tiles)
         {
-            world.SetTile(tile.cell, tile.tileBase);
+            Vector3Int newCell = new Vector3Int(tile.cell.x, tile.cell.y, 0);
+            world.SetTile(newCell, tile.tileBase);
+            tile.position = new Vector3(tile.cell.x, tile.cell.y, 0);
         }
-        world.RefreshAllTiles();
     }
 }
 
@@ -138,6 +140,7 @@ public class TileWorld : MonoBehaviour
     public new GameObject camera;
     public TileBase floor_tile_asset;
     public TileBase wall_tile_asset;
+    public TileBase door_tile_asset;
 
     /// These are the three colors the square cursor can be. I attach an image to them in the same way that I would for the GameObjects above,
     /// except I drag from the Project window to the Inspector window.
@@ -163,8 +166,9 @@ public class TileWorld : MonoBehaviour
     Vector3Int[] spawns;
     int spawnAmount = 0;
 
-    int roomCount;
+    int roomCount = 0;
     TileRoom firstRoom;
+    public List<TileRoom> rooms;
 
     public void GenerateWalls(TileRoom room)
     {
@@ -172,55 +176,168 @@ public class TileWorld : MonoBehaviour
         int x = room.startX;
         Vector3Int cell;
 
-        int doorCount = Random.Range(1, 4);
+        int doorMin = 1;
+        int doorMax = 4;
+        int wallsLeft = 4;
+        int doorCount = Random.Range(doorMin, doorMax + 1);
+        int doorChance = Random.Range(doorCount, wallsLeft + 1);
+        int chanceTile = Random.Range(room.startY + 1, room.startY + 8);
+        bool createdDoor = false;
+        if(world.GetTile(new Vector3Int(room.startX, room.startY, zAxis)) != null)
+        {
+            wallsLeft--;
+        }
+        if (world.GetTile(new Vector3Int(room.startX + 8, room.startY, zAxis)) != null)
+        {
+            wallsLeft--;
+        }
+        if (world.GetTile(new Vector3Int(room.startX, room.startY + 8, zAxis)) != null)
+        {
+            wallsLeft--;
+        }
+        if (world.GetTile(new Vector3Int(room.startX + 8, room.startY + 8, zAxis)) != null)
+        {
+            wallsLeft--;
+        }
         while (y < room.startY + 9)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell) == null)
             {
-                world.SetTile(cell, wall_tile_asset);
+                if (doorCount > 0 && !createdDoor && doorChance >= wallsLeft && y == chanceTile)
+                {
+                    if (HasGenerator(room))
+                    {
+                        world.SetTile(cell, door_tile_asset);
+                    }
+                    else
+                    {
+                        world.SetTile(cell, floor_tile_asset);
+                    }
+                    createdDoor = true;
+                    doorCount--;
+                    doorChance = Random.Range(doorCount, wallsLeft);
+                    chanceTile = Random.Range(room.startX + 1, room.startX + 8);
+                }
+                else
+                {
+                    world.SetTile(cell, wall_tile_asset);
+                }
             }
             y++;
         }
+        wallsLeft--;
+        createdDoor = false;
         y--;
         while (x < room.startX + 9)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell) == null)
             {
-                world.SetTile(cell, wall_tile_asset);
+                if (doorCount > 0 && !createdDoor && doorChance >= wallsLeft && x == chanceTile)
+                {
+                    if (HasGenerator(room))
+                    {
+                        world.SetTile(cell, door_tile_asset);
+                    }
+                    else
+                    {
+                        world.SetTile(cell, floor_tile_asset);
+                    }
+                    createdDoor = true;
+                    doorCount--;
+                    doorChance = Random.Range(doorCount, wallsLeft);
+                    chanceTile = Random.Range(room.startY + 1, room.startY + 8);
+                }
+                else
+                {
+                    world.SetTile(cell, wall_tile_asset);
+                }
             }
             x++;
         }
+        wallsLeft--;
+        createdDoor = false;
         x--;
         while (y > room.startY - 1)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell) == null)
             {
-                world.SetTile(cell, wall_tile_asset);
+                if (doorCount > 0 && !createdDoor && doorChance >= wallsLeft && y == chanceTile)
+                {
+                    if (HasGenerator(room))
+                    {
+                        world.SetTile(cell, door_tile_asset);
+                    }
+                    else
+                    {
+                        world.SetTile(cell, floor_tile_asset);
+                    }
+                    createdDoor = true;
+                    doorCount--;
+                    doorChance = Random.Range(doorCount, wallsLeft);
+                    chanceTile = Random.Range(room.startX + 1, room.startX + 8);
+                }
+                else
+                {
+                    world.SetTile(cell, wall_tile_asset);
+                }
             }
             y--;
         }
+        wallsLeft--;
+        createdDoor = false;
         y++;
         while (x > room.startX - 1)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell) == null)
             {
-                world.SetTile(cell, wall_tile_asset);
+                if (doorCount > 0 && !createdDoor && doorChance >= wallsLeft && x == chanceTile)
+                {
+                    if (HasGenerator(room))
+                    {
+                        world.SetTile(cell, door_tile_asset);
+                    }
+                    else
+                    {
+                        world.SetTile(cell, floor_tile_asset);
+                    }
+                    createdDoor = true;
+                }
+                else
+                {
+                    world.SetTile(cell, wall_tile_asset);
+                }
             }
             x--;
         }
-        x++;
+    }
 
+    public bool HasGenerator(TileRoom room)
+    {
+        for (int x = 0; x < room.roomSize; x++)
+        {
+            for (int y = 0; y < room.roomSize; y++)
+            {
+                if (room.tiles[x, y].tileBase.name.Contains("key"))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public TileRoom AddRoom(GameObject room, int x, int y)
     {
-        Instantiate(room, transform);
         roomCount++;
-        return new TileRoom(world, room.GetComponent<Tilemap>(), roomCount, x, y);
+        TileRoom newRoom = new TileRoom(world, room.GetComponent<Tilemap>(), roomCount, x, y);
+        GenerateWalls(newRoom);
+        newRoom.ShowRoom();
+        rooms.Add(newRoom);
+        return newRoom;
     }
 
     void Awake()
@@ -229,9 +346,8 @@ public class TileWorld : MonoBehaviour
         gui = camera.GetComponent<guiScript>();
         cursor = cursorObj.GetComponent<Cursor>();
         turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
+        rooms = new List<TileRoom>();
         firstRoom = AddRoom(room_1, 0, 0);
-        GenerateWalls(firstRoom);
-        firstRoom.ShowRoom();
         world = tileMapWorldObj.GetComponent<Tilemap>();
         turnHandler.Initialize();
         world.CompressBounds();
@@ -281,6 +397,7 @@ public class TileWorld : MonoBehaviour
             child.transform.position = scrambledSpawns[i];
             Player player = child.gameObject.GetComponent<Player>();
             player.AdjustStartingPosition();
+            player.UpdateRoom();
             player.start = scrambledSpawns[i];
         }
         Vector3Int playerCell = world.WorldToCell(turnHandler.activePlayer.transform.position);
@@ -292,12 +409,91 @@ public class TileWorld : MonoBehaviour
         }
     }
 
+    bool addingRoom = false;
+
     void Update()
     {
-       /* if (tileMap.GetTile(tileMap.WorldToCell(turnHandler.activePlayer.transform.position)).name.Contains("win"))
+        /* if (tileMap.GetTile(tileMap.WorldToCell(turnHandler.activePlayer.transform.position)).name.Contains("win"))
+         {
+             SceneManager.LoadScene("End_Scene", LoadSceneMode.Single);
+         }*/
+        if (!(Mathf.Round(turnHandler.activePlayer.transform.position.x * 10) / 10 == RoundOffset(turnHandler.activePlayer.tileRoom.startX) ||
+            Mathf.Round(turnHandler.activePlayer.transform.position.x * 10) / 10 == RoundOffset(turnHandler.activePlayer.tileRoom.startX + 8) ||
+            Mathf.Round(turnHandler.activePlayer.transform.position.y * 10) / 10 == RoundOffset(turnHandler.activePlayer.tileRoom.startY) ||
+            Mathf.Round(turnHandler.activePlayer.transform.position.y * 10) / 10 == RoundOffset(turnHandler.activePlayer.tileRoom.startY + 8)))
         {
-            SceneManager.LoadScene("End_Scene", LoadSceneMode.Single);
-        }*/
+            addingRoom = false;
+        }
+        if (!addingRoom && 
+            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.tileRoom.startX - 5, turnHandler.activePlayer.tileRoom.startY, zAxis))) == null && 
+            Mathf.Round(turnHandler.activePlayer.transform.position.x * 10)/10 == RoundOffset(turnHandler.activePlayer.tileRoom.startX))
+        {
+            addingRoom = true;
+            if (Random.Range(0, 2) > 0)
+            {
+                AddRoom(room_2, (turnHandler.activePlayer.tileRoom.startX - 8), turnHandler.activePlayer.tileRoom.startY);
+            }
+            else
+            {
+                AddRoom(room_1, (turnHandler.activePlayer.tileRoom.startX - 8), turnHandler.activePlayer.tileRoom.startY);
+            }
+        }
+        else if(!addingRoom &&
+            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.tileRoom.startX + 10, turnHandler.activePlayer.tileRoom.startY, zAxis))) == null &&
+            Mathf.Round(turnHandler.activePlayer.transform.position.x * 10) / 10 == RoundOffset(turnHandler.activePlayer.tileRoom.startX + 8))
+        {
+            addingRoom = true;
+            if (Random.Range(0, 2) > 0)
+            {
+                AddRoom(room_2, (turnHandler.activePlayer.tileRoom.startX + 8), turnHandler.activePlayer.tileRoom.startY);
+            }
+            else
+            {
+                AddRoom(room_1, (turnHandler.activePlayer.tileRoom.startX + 8), turnHandler.activePlayer.tileRoom.startY);
+            }
+        }
+        else if (!addingRoom &&
+            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.tileRoom.startX, turnHandler.activePlayer.tileRoom.startY - 5, zAxis))) == null &&
+            Mathf.Round(turnHandler.activePlayer.transform.position.y * 10) / 10 == RoundOffset(turnHandler.activePlayer.tileRoom.startY))
+        {
+            addingRoom = true;
+            if (Random.Range(0, 2) > 0)
+            {
+                AddRoom(room_2, (turnHandler.activePlayer.tileRoom.startX), turnHandler.activePlayer.tileRoom.startY - 8);
+            }
+            else
+            {
+                AddRoom(room_1, (turnHandler.activePlayer.tileRoom.startX), turnHandler.activePlayer.tileRoom.startY - 8);
+            }
+        }
+        else if (!addingRoom &&
+            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.tileRoom.startX, turnHandler.activePlayer.tileRoom.startY + 10, zAxis))) == null &&
+            Mathf.Round(turnHandler.activePlayer.transform.position.y * 10) / 10 == RoundOffset(turnHandler.activePlayer.tileRoom.startY + 8))
+        {
+            addingRoom = true;
+            if (Random.Range(0, 2) > 0)
+            {
+                AddRoom(room_2, (turnHandler.activePlayer.tileRoom.startX), turnHandler.activePlayer.tileRoom.startY + 8);
+            }
+            else
+            {
+                AddRoom(room_1, (turnHandler.activePlayer.tileRoom.startX), turnHandler.activePlayer.tileRoom.startY + 8);
+            }
+        }
+    }
+
+    public float RoundOffset(float a)
+    {
+        int b = Mathf.RoundToInt(a);
+        if (b > a)
+        {
+            return b - 0.5f;
+        }
+        else
+        {
+            return b + 0.5f;
+        }
+
     }
 
     /// Checks if a tile is valid.
@@ -419,8 +615,67 @@ public class TileWorld : MonoBehaviour
         }
     }
 
-    public void OpenDoors(Vector3Int start)
+    public void OpenDoors(Player player)
     {
+        Vector3 start = player.transform.position;
+        int room = player.tileRoom.number;
+        int roomIndex = -1;
+        int x = -1, y = -1;
+        Vector3Int cell = new Vector3Int((int)start.x, (int)start.y, zAxis);
+        if (world.GetTile(cell).name.Contains("key"))
+        {
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                if (rooms[i].number == room)
+                {
+                    x = rooms[i].startX;
+                    y = rooms[i].startY;
+                    roomIndex = i;
+                    break;
+                }
+            }
+            while (y < rooms[roomIndex].startY + 9)
+            {
+                cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
+                if (world.GetTile(cell).name.Contains("door"))
+                {
+                    world.SetTile(cell, floor_tile_asset);
+                }
+                y++;
+            }
+            y--;
+            while (x < rooms[roomIndex].startX + 9)
+            {
+                cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
+                if (world.GetTile(cell).name.Contains("door"))
+                {
+                    world.SetTile(cell, floor_tile_asset);
+                }
+                x++;
+            }
+            x--;
+            while (y > rooms[roomIndex].startY - 1)
+            {
+                cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
+                if (world.GetTile(cell).name.Contains("door"))
+                {
+                    world.SetTile(cell, floor_tile_asset);
+                }
+                y--;
+            }
+            y++;
+            while (x > rooms[roomIndex].startX - 1)
+            {
+                cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
+                if (world.GetTile(cell).name.Contains("door"))
+                {
+                    world.SetTile(cell, floor_tile_asset);
+                }
+                x--;
+            }
+        }
+
+        /*
         TileBase startTile = world.GetTile(start);
         Vector3Int prev = undefinedVec3Int;
         if (startTile.name.Contains("key"))
@@ -432,10 +687,10 @@ public class TileWorld : MonoBehaviour
             }
             wires.Clear();
             doors.Clear();
-        }
+        }*/
     }
 
-    public void DoorSearch(Vector3Int start, Vector3Int prev)
+    /*public void DoorSearch(Vector3Int start, Vector3Int prev)
     {
         Vector3Int left = new Vector3Int(start.x - 1, start.y, 0);
         Vector3Int right = new Vector3Int(start.x + 1, start.y, 0);
@@ -505,9 +760,9 @@ public class TileWorld : MonoBehaviour
                 return;
             }
         }
-    }
+    }*/
 
-    public void ChangeDoors(Vector3Int start, Vector3Int prev)
+    /*public void ChangeDoors(Vector3Int start, Vector3Int prev)
     {
         Vector3Int left = new Vector3Int(start.x - 1, start.y, 0);
         Vector3Int right = new Vector3Int(start.x + 1, start.y, 0);
@@ -540,5 +795,5 @@ public class TileWorld : MonoBehaviour
             prev = start;
             ChangeDoors(below, prev);
         }
-    }
+    }*/
 }
