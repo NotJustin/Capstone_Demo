@@ -36,14 +36,21 @@ public class guiScript : MonoBehaviour
 
         if (!turnHandler.activePlayer.moving && GUI.Button(new Rect(5, (140 + 5), 100, 40), "End turn"))
         {
-            Debug.Log("Enemy turn");
-            turnHandler.enemyList[0].AttackOne();
+            //Debug.Log("Enemy turn");
+            if (turnHandler.enemyList.Count > 0)
+            {
+                turnHandler.enemyList[0].AttackOne();
+            }
+            else
+            {
+                turnHandler.changeTurn = true;
+            }
         }
 
         GUI.Label(new Rect(5, 220, 200, 20), "Moves remaining: " + turnHandler.activePlayer.moves);
         GUI.Label(new Rect(5, 240, 200, 20), "Moves pending: " + turnHandler.activePlayer.pendingMoves);
         GUI.Label(new Rect(5, 200, 200, 20), "Player room number: " + turnHandler.activePlayer.tileRoom.number);
-        if (turnHandler.enemyList[0].awaitMovement)
+        if (turnHandler.enemyList.Count > 0 && turnHandler.enemyList[0].awaitMovement)
         {
             GUI.Label(new Rect(5, 180, 200, 20), "Selected: " + turnHandler.enemyList[0].obj.transform.name);
         }

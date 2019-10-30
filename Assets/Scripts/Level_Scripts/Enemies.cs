@@ -9,10 +9,9 @@ public abstract class IEnemy
     GameObject tileWorldObj;
     public int health;
     public GameObject obj;
-    public Tilemap tileMap;
     TileWorld tileWorld;
     List<Player> playerList;
-    TileClass[,] world;
+    public TileRoom tileRoom;
     public bool awaitMovement;
     public bool startedMoving;
     public bool attacked;
@@ -39,14 +38,14 @@ public abstract class IEnemy
     public List<TileClass> FindPathToNearestPlayer()
     {
         //world = tileWorld.world;
-        world = new TileClass[2,2];
+        //world = new TileClass[2,2];
 
         /// setting all parents to null before creating paths because otherwise infinite loop problems occur.
-        for (int x = 0; x < world.GetLength(0); x++)
+        for (int x = 0; x < tileRoom.tiles.GetLength(0); x++)
         {
-            for (int y = 0; y < world.GetLength(1); y++)
+            for (int y = 0; y < tileRoom.tiles.GetLength(1); y++)
             {
-                world[x, y].parent = null;
+                tileRoom.tiles[x, y].parent = null;
             }
         }
         playerList = turnHandlerObj.GetComponent<Turn_Handler>().playerList;
@@ -55,13 +54,17 @@ public abstract class IEnemy
         foreach (Player player in playerList)
         {
             currentPath.Clear();
-            Vector3Int start = tileMap.WorldToCell(obj.transform.position);
-            Vector3Int goal = tileMap.WorldToCell(player.transform.position);
-            if (world[start.x, start.y].room == world[goal.x, goal.y].room)
+            Vector3Int start = tileWorld.world.WorldToCell(obj.transform.position);
+            Vector3Int goal = tileWorld.world.WorldToCell(player.transform.position);
+            start = new Vector3Int(start.x + tileRoom.startX - 1, start.y + tileRoom.startY - 1, start.z);
+            goal = new Vector3Int(goal.x + tileRoom.startX - 1, goal.y + tileRoom.startY - 1, goal.z);
+            Debug.Log(start);
+            Debug.Log(goal);
+            if (tileRoom.tiles[start.x, start.y].room == tileRoom.tiles[goal.x, goal.y].room)
             {
-                if (BuildPathAStar(world[start.x, start.y], world[goal.x, goal.y]))
+                if (BuildPathAStar(tileRoom.tiles[start.x, start.y], tileRoom.tiles[goal.x, goal.y]))
                 {
-                    TileClass temp = world[goal.x, goal.y];
+                    TileClass temp = tileRoom.tiles[goal.x, goal.y];
                     while (temp.parent != null)
                     {
                         currentPath.Add(temp);
@@ -108,6 +111,7 @@ public abstract class IEnemy
                 closestPath.RemoveAt(i);
             }
         }
+        Debug.Log(closestPath.Count);
         return closestPath;
     }
 
@@ -145,39 +149,34 @@ public abstract class IEnemy
     void PopulateAdjacentArray(List<TileClass> adjacent, TileClass tile, TileRoom tRoom)
     {
         TileClass neighbor;
-        TileBase left, right, up, down;
-        left = tRoom.map.GetTile(new Vector3Int(tile.cell.x - 1, tile.cell.y, zAxis));
-        right = tRoom.map.GetTile(new Vector3Int(tile.cell.x + 1, tile.cell.y, zAxis));
-        up = tRoom.map.GetTile(new Vector3Int(tile.cell.x, tile.cell.y + 1, zAxis));
-        down = tRoom.map.GetTile(new Vector3Int(tile.cell.x, tile.cell.y - 1, zAxis));
-        if (left != null)
+        if (tile.cell.x > 1 && tile.cell.y > 0)
         {
-            neighbor = tRoom.tiles[tile.cell.x - 1, tile.cell.y];
-            if (neighbor.type != -1)
+            neighbor = tRoom.tiles[tile.cell.x - 2, tile.cell.y - 1];
+            if (!neighbor.tileBase.name.Contains("wall"))
             {
                 adjacent.Add(neighbor);
             }
         }
-        if (right != null)
-        {
-            neighbor = tRoom.tiles[tile.cell.x - 1, tile.cell.y];
-            if (neighbor.type != -1)
-            {
-                adjacent.Add(neighbor);
-            }
-        }
-        if (up != null)
-        {
-            neighbor = tRoom.tiles[tile.cell.x, tile.cell.y + 1];
-            if (neighbor.type != -1)
-            {
-                adjacent.Add(neighbor);
-            }
-        }
-        if (down != null)
+        if (tile.cell.x < tRoom.startX + 7 && tile.cell.y > 0)
         {
             neighbor = tRoom.tiles[tile.cell.x, tile.cell.y - 1];
-            if (neighbor.type != -1)
+            if (!neighbor.tileBase.name.Contains("wall"))
+            {
+                adjacent.Add(neighbor);
+            }
+        }
+        if (tile.cell.x > 0 && tile.cell.y < tRoom.startY + 7)
+        {
+            neighbor = tRoom.tiles[tile.cell.x - 1, tile.cell.y];
+            if (!neighbor.tileBase.name.Contains("wall"))
+            {
+                adjacent.Add(neighbor);
+            }
+        }
+        if (tile.cell.x > 0 && tile.cell.y > 1)
+        {
+            neighbor = tRoom.tiles[tile.cell.x - 1, tile.cell.y - 2];
+            if (!neighbor.tileBase.name.Contains("wall"))
             {
                 adjacent.Add(neighbor);
             }
@@ -202,7 +201,7 @@ public abstract class IEnemy
             }
             closed.Add(open[0]);
             open.RemoveAt(0);
-            PopulateAdjacentArray(adjacent, closed[closed.Count - 1], null); //firstRoom
+            PopulateAdjacentArray(adjacent, closed[closed.Count - 1], tileRoom); //firstRoom
 
             foreach (TileClass tile in adjacent)
             {
@@ -246,8 +245,10 @@ public abstract class IEnemy
     int zAxis = 0;
     public int MoveAlongPath(List<TileClass> path, float range, int moves)
     {
+        Debug.Log("moving along path");
         if (path == null)
         {
+            Debug.Log("null path");
             moving = false;
             awaitMovement = false;
             startedMoving = false;
@@ -256,12 +257,14 @@ public abstract class IEnemy
         }
         if (path.Count > 0 && !moving)
         {
+            Debug.Log("getting ready to move to next tile");
             destination = path[0].position;
             destination = new Vector3(RoundOffset(destination.x), RoundOffset(destination.y), destination.z);
             moving = true;
             startTime = Time.time;
             if (obj.transform.position == destination)
             {
+                Debug.Log("fixing problem");
                 path[0].parent = null;
                 path.RemoveAt(0);
                 destination = path[0].position;
@@ -270,6 +273,7 @@ public abstract class IEnemy
             totalDistance = Mathf.Abs(obj.transform.position.x - destination.x) + Mathf.Abs(obj.transform.position.y - destination.y);
             if (path.Count > 0 && InRange(path, range))
             {
+                Debug.Log("already in range");
                 moving = false;
                 awaitMovement = false;
                 startedMoving = false;
@@ -280,6 +284,7 @@ public abstract class IEnemy
         }
         else
         {
+            Debug.Log("actually moving");
             float distanceCovered, fractionOfJourney;
             if (obj.transform.position != destination)
             {
@@ -333,6 +338,36 @@ public abstract class IEnemy
     {
         return path.Count <= range;
     }
+
+    public void UpdateRoom()
+    {
+        bool pleaseExit = false;
+        for (int j = 0; j < tileWorld.rooms.Count; j++)
+        {
+            if (pleaseExit)
+            {
+                break;
+            }
+            for (int x = 0; x < tileWorld.rooms[j].roomSize; x++)
+            {
+                if (pleaseExit)
+                {
+                    break;
+                }
+                for (int y = 0; y < tileWorld.rooms[j].roomSize; y++)
+                {
+                    if (new Vector3(RoundOffset(tileWorld.rooms[j].tiles[x, y].position.x), RoundOffset(tileWorld.rooms[j].tiles[x, y].position.y), zAxis) == obj.transform.position)
+                    {
+                        //Debug.Log("room is updated");
+                        tileRoom = tileWorld.rooms[j];
+                        pleaseExit = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 public class Thrasher : IEnemy
@@ -343,10 +378,11 @@ public class Thrasher : IEnemy
     }
     public override void AttackOne()
     {
+        UpdateRoom();
         if (!attacked)
         {
-            Debug.Log("attacking");
-            range = 3.0f;
+            //Debug.Log("attacking");
+            range = 1.0f;
             attacked = true;
         }
         if (!startedMoving)

@@ -31,7 +31,7 @@ public class Cursor : MonoBehaviour
         if (gui.mode == 0)
         {
             CursorFollowMouse();
-            if (Input.GetMouseButtonDown(0) || Input.GetMouseButton(0))
+            if (!turnHandler.activePlayer.moving && Input.GetMouseButton(0))
             {
                 /// This is just converting the Vector3 position of the cursor and player in the world to the cell position of
                 /// the tile they are currently on when the player clicks their left mouse button.
@@ -42,7 +42,7 @@ public class Cursor : MonoBehaviour
                     turnHandler.activePlayer.AddTileToPath(goal);
                 }
             }
-            if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButton(1))
             {
                 /// Does the opposite of above. It checks if the cell the cursor is on is the last tile you selected. If so, it removes it from the list.
                 /// In the future, I would want the "last selected tile" to be a different color so that people aren't forced to memorize what the last tile they selected is.
