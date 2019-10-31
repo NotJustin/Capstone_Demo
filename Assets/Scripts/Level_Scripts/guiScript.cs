@@ -39,7 +39,7 @@ public class guiScript : MonoBehaviour
             //Debug.Log("Enemy turn");
             if (turnHandler.enemyList.Count > 0)
             {
-                turnHandler.enemyList[0].AttackOne();
+                turnHandler.enemyList[0].PrimaryAttack();
             }
             else
             {

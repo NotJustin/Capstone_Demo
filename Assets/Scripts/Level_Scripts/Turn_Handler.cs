@@ -63,8 +63,6 @@ public class Turn_Handler : MonoBehaviour
             //enemyTurn = true;
             /// Unhighlights any yellow tiles
             tileWorld.UnhighlightOldNeighbors();
-            /// Unhighlights any yellow tiles
-            tileWorld.UnhighlightOldNeighbors();
             /// Unhighlights all selected tiles
             activePlayer.ClearPath();
             /// Add the current activePlayer to the end of the list
@@ -72,7 +70,7 @@ public class Turn_Handler : MonoBehaviour
             /// Remove the current activePlayer from the front of the list
             playerList.RemoveAt(0);
             //enemyTurn = false;
-            if (!(enemyList.Count > 0 && !enemyList[0].awaitMovement))
+            if (enemyList.Count > 0 && !enemyList[0].awaitMovement)
             {
                 /// Set activePlayer to be the new front of the list
                 activePlayer = playerList[0];
@@ -92,7 +90,7 @@ public class Turn_Handler : MonoBehaviour
         if (enemyList.Count > 0 && enemyList[0].awaitMovement)
         {
             transform.position = new Vector3(enemyList[0].obj.transform.position.x, enemyList[0].obj.transform.position.y, -10);
-            enemyList[0].AttackOne();
+            enemyList[0].PrimaryAttack();
         }
         else
         {

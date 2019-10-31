@@ -19,9 +19,10 @@ public abstract class IEnemy
     public int prevMoves;
     public float range;
     public List<TileClass> path;
-    public IEnemy(int _health, GameObject _obj)
+    public int tier;
+    public IEnemy(GameObject _obj)
     {
-        health = _health;
+        health = 0;
         obj = _obj;
         playerSpeed = 1.0f;
         attacked = false;
@@ -31,9 +32,10 @@ public abstract class IEnemy
         tileWorldObj = GameObject.FindGameObjectWithTag("TileWorld");
         tileWorld = tileWorldObj.GetComponent<TileWorld>();
     }
-    public abstract void AttackOne();
-    public abstract void AttackTwo();
-    public abstract void AttackThree();
+
+    public abstract void PrimaryAttack();
+    public abstract void SecondaryAttack();
+    public abstract void SpecialAttack();
 
     public List<TileClass> FindPathToNearestPlayer()
     {
@@ -58,8 +60,6 @@ public abstract class IEnemy
             Vector3Int goal = tileWorld.world.WorldToCell(player.transform.position);
             start = new Vector3Int(start.x + tileRoom.startX - 1, start.y + tileRoom.startY - 1, start.z);
             goal = new Vector3Int(goal.x + tileRoom.startX - 1, goal.y + tileRoom.startY - 1, goal.z);
-            Debug.Log(start);
-            Debug.Log(goal);
             if (tileRoom.tiles[start.x, start.y].room == tileRoom.tiles[goal.x, goal.y].room)
             {
                 if (BuildPathAStar(tileRoom.tiles[start.x, start.y], tileRoom.tiles[goal.x, goal.y]))
@@ -111,7 +111,6 @@ public abstract class IEnemy
                 closestPath.RemoveAt(i);
             }
         }
-        Debug.Log(closestPath.Count);
         return closestPath;
     }
 
@@ -245,10 +244,8 @@ public abstract class IEnemy
     int zAxis = 0;
     public int MoveAlongPath(List<TileClass> path, float range, int moves)
     {
-        Debug.Log("moving along path");
         if (path == null)
         {
-            Debug.Log("null path");
             moving = false;
             awaitMovement = false;
             startedMoving = false;
@@ -257,7 +254,6 @@ public abstract class IEnemy
         }
         if (path.Count > 0 && !moving)
         {
-            Debug.Log("getting ready to move to next tile");
             destination = path[0].position;
             destination = new Vector3(RoundOffset(destination.x), RoundOffset(destination.y), destination.z);
             moving = true;
@@ -273,7 +269,6 @@ public abstract class IEnemy
             totalDistance = Mathf.Abs(obj.transform.position.x - destination.x) + Mathf.Abs(obj.transform.position.y - destination.y);
             if (path.Count > 0 && InRange(path, range))
             {
-                Debug.Log("already in range");
                 moving = false;
                 awaitMovement = false;
                 startedMoving = false;
@@ -284,7 +279,6 @@ public abstract class IEnemy
         }
         else
         {
-            Debug.Log("actually moving");
             float distanceCovered, fractionOfJourney;
             if (obj.transform.position != destination)
             {
@@ -370,54 +364,10 @@ public abstract class IEnemy
 
 }
 
-public class Thrasher : IEnemy
-{
-    public Thrasher(int health, GameObject obj) : base(health, obj)
-    {
-
-    }
-    public override void AttackOne()
-    {
-        UpdateRoom();
-        if (!attacked)
-        {
-            //Debug.Log("attacking");
-            range = 1.0f;
-            attacked = true;
-        }
-        if (!startedMoving)
-        {
-            awaitMovement = true;
-            startedMoving = true;
-            moves = 2;
-            prevMoves = 2;
-            path = FindPathToNearestPlayer();
-            MoveAlongPath(path, range, moves);
-        }
-        else
-        {
-            moves = MoveAlongPath(path, range, moves);
-        }
-        if (moves == 0)
-        {
-            prevMoves = 2;
-            moves = 2;
-            path.Clear();
-        }
-    }
-    public override void AttackTwo()
-    {
-        
-    }
-    public override void AttackThree()
-    {
-
-    }
-}
-
 public class Enemies : MonoBehaviour
 {
     public List<IEnemy> enemies;
+    public List<IEnemy> tierOneEnemies, tierTwoEnemies, tierThreeEnemies, tierFourEnemies;
 
     public IEnemy activeEnemy;
 
@@ -425,9 +375,11 @@ public class Enemies : MonoBehaviour
     {
         enemies = new List<IEnemy>();
         activeEnemy = null;
+        //tierOneEnemies.Add("Maggot");
+        //tierTwoEnemies.Add("Thrasher");
         foreach (Transform child in transform)
         {
-            enemies.Add(new Thrasher(3, child.gameObject));
+            enemies.Add(new Thrasher(child.gameObject));
             //Debug.Log("child gameobject = " + child.gameObject);
             child.position = new Vector3(RoundOffset(child.position.x), RoundOffset(child.position.y), child.position.z);
         }

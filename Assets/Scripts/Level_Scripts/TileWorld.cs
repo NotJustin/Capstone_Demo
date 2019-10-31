@@ -66,10 +66,7 @@ public class TileRoom
     {
         startX = _startX;
         startY = _startY;
-        int spawn = 2;
-        int floor = 0;
-        int win = 1;
-        int wall = -1;
+        int spawn = 2, floor = 0, win = 1, wall = -1, enemyOne = 31, enemyTwo = 32, enemyThree = 33, enemyFour = 34;
         for (int x = 0; x < roomSize; x++)
         {
             for (int y = 0; y < roomSize; y++)
@@ -92,6 +89,25 @@ public class TileRoom
                     else if (tiles[x, y].tileBase.name.Contains("wall") || tiles[x, y].tileBase.name.Contains("barrier"))
                     {
                         tiles[x, y].type = wall;
+                    }
+                    else if (tiles[x, y].tileBase.name.Contains("enemy"))
+                    {
+                        if (tiles[x, y].tileBase.name.Contains("1"))
+                        {
+                            tiles[x, y].type = enemyOne;
+                        }
+                        else if(tiles[x, y].tileBase.name.Contains("2"))
+                        {
+                            tiles[x, y].type = enemyTwo;
+                        }
+                        else if (tiles[x, y].tileBase.name.Contains("3"))
+                        {
+                            tiles[x, y].type = enemyThree;
+                        }
+                        else if (tiles[x, y].tileBase.name.Contains("4"))
+                        {
+                            tiles[x, y].type = enemyFour;
+                        }
                     }
                 }
                 else
