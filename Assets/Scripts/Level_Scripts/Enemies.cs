@@ -13,13 +13,21 @@ public abstract class IEnemy
     List<Player> playerList;
     public TileRoom tileRoom;
     public bool awaitMovement;
-    public bool startedMoving;
+    public bool turnStarted;
     public bool attacked;
     public int moves;
     public int prevMoves;
     public float range;
     public List<TileClass> path;
     public int tier;
+
+    public bool moving;
+    float startTime;
+    Vector3 destination;
+    float totalDistance;
+    public float playerSpeed;
+    int zAxis = 0;
+
     public IEnemy(GameObject _obj)
     {
         health = 0;
@@ -27,7 +35,6 @@ public abstract class IEnemy
         playerSpeed = 1.0f;
         attacked = false;
         awaitMovement = false;
-        startedMoving = false;
         turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
         tileWorldObj = GameObject.FindGameObjectWithTag("TileWorld");
         tileWorld = tileWorldObj.GetComponent<TileWorld>();
@@ -43,6 +50,7 @@ public abstract class IEnemy
         //world = new TileClass[2,2];
 
         /// setting all parents to null before creating paths because otherwise infinite loop problems occur.
+
         for (int x = 0; x < tileRoom.tiles.GetLength(0); x++)
         {
             for (int y = 0; y < tileRoom.tiles.GetLength(1); y++)
@@ -55,6 +63,10 @@ public abstract class IEnemy
         List<TileClass> currentPath = new List<TileClass>();
         foreach (Player player in playerList)
         {
+            if (player.tileRoom == null || tileRoom.number != player.tileRoom.number)
+            {
+                continue;
+            }
             currentPath.Clear();
             Vector3Int start = tileWorld.world.WorldToCell(obj.transform.position);
             Vector3Int goal = tileWorld.world.WorldToCell(player.transform.position);
@@ -110,6 +122,17 @@ public abstract class IEnemy
                 }
                 closestPath.RemoveAt(i);
             }
+        }
+        destination = closestPath[0].position;
+        destination = new Vector3(RoundOffset(destination.x), RoundOffset(destination.y), destination.z);
+        if (obj.transform.position == destination)
+        {
+            closestPath[0].parent = null;
+            closestPath.RemoveAt(0);
+        }
+        if (InRange(closestPath, range))
+        {
+            return null;
         }
         return closestPath;
     }
@@ -236,20 +259,28 @@ public abstract class IEnemy
         return false;
     }
 
-    public bool moving;
-    float startTime;
-    Vector3 destination;
-    float totalDistance;
-    public float playerSpeed;
-    int zAxis = 0;
+    public void StartTurn()
+    {
+        turnStarted = true;
+    }
+
+    public void EndTurn()
+    {
+        moving = false;
+        awaitMovement = false;
+        if (path != null)
+        {
+            path.Clear();
+        }
+        turnHandlerObj.GetComponent<Turn_Handler>().enemyTurn = false;
+        turnHandlerObj.GetComponent<Turn_Handler>().playerTurn = true;
+    }
+
     public int MoveAlongPath(List<TileClass> path, float range, int moves)
     {
         if (path == null)
         {
-            moving = false;
-            awaitMovement = false;
-            startedMoving = false;
-            turnHandlerObj.GetComponent<Turn_Handler>().changeTurn = true;
+            EndTurn();
             return 0;
         }
         if (path.Count > 0 && !moving)
@@ -269,10 +300,7 @@ public abstract class IEnemy
             totalDistance = Mathf.Abs(obj.transform.position.x - destination.x) + Mathf.Abs(obj.transform.position.y - destination.y);
             if (path.Count > 0 && InRange(path, range))
             {
-                moving = false;
-                awaitMovement = false;
-                startedMoving = false;
-                turnHandlerObj.GetComponent<Turn_Handler>().changeTurn = true;
+                EndTurn();
                 return 0;
             }
             return moves;
@@ -304,10 +332,7 @@ public abstract class IEnemy
                 }
                 else
                 {
-                    awaitMovement = false;
-                    startedMoving = false;
-                    turnHandlerObj.GetComponent<Turn_Handler>().changeTurn = true;
-                    path.Clear();
+                    EndTurn();
                     return 0;
                 }
             }
@@ -366,28 +391,43 @@ public abstract class IEnemy
 
 public class Enemies : MonoBehaviour
 {
-    public List<IEnemy> enemies;
-    public List<IEnemy> tierOneEnemies, tierTwoEnemies, tierThreeEnemies, tierFourEnemies;
+    public GameObject thrasher;
+    public List<GameObject> enemies;
+    public List<GameObject> tierOneEnemies, tierTwoEnemies, tierThreeEnemies, tierFourEnemies;
 
-    public IEnemy activeEnemy;
+    public GameObject turnHandlerObj;
+    public Turn_Handler turnHandler;
 
     void Awake()
     {
-        enemies = new List<IEnemy>();
-        activeEnemy = null;
+        tierTwoEnemies.Add(thrasher);
+        enemies = new List<GameObject>();
+        //activeEnemy = null;
         //tierOneEnemies.Add("Maggot");
         //tierTwoEnemies.Add("Thrasher");
-        foreach (Transform child in transform)
+        /*foreach (Transform child in transform)
         {
             enemies.Add(new Thrasher(child.gameObject));
             //Debug.Log("child gameobject = " + child.gameObject);
             child.position = new Vector3(RoundOffset(child.position.x), RoundOffset(child.position.y), child.position.z);
-        }
+        }*/
     }
 
     void Start()
     {
-
+        turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
+        Vector3 position = new Vector3(2.5f, 2.5f, 0);
+        foreach (GameObject enemy in tierTwoEnemies)
+        {
+            GameObject newEnemy = Instantiate(enemy, position, Quaternion.identity) as GameObject;
+            newEnemy.transform.parent = GameObject.FindGameObjectWithTag("Enemies").transform;
+            enemies.Add(newEnemy);
+            //Debug.Log("child gameobject = " + child.gameObject);
+        }
+        Debug.Log(enemies[0].GetComponent<ThrasherScript>().thrasher);
+        turnHandler.activeEnemy = turnHandler.FetchEnemyType(enemies);
+        turnHandler.activeEnemy.UpdateRoom();
+        Debug.Log(turnHandler.activeEnemy);
     }
 
     void Update()

@@ -17,10 +17,9 @@ public class Maggot : IEnemy
             range = 1.0f;
             attacked = true;
         }
-        if (!startedMoving)
+        if (!awaitMovement)
         {
             awaitMovement = true;
-            startedMoving = true;
             moves = 2;
             prevMoves = 2;
             path = FindPathToNearestPlayer();

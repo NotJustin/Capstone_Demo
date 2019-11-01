@@ -442,14 +442,6 @@ public class TileWorld : MonoBehaviour
             player.UpdateRoom();
             player.start = scrambledSpawns[i];
         }
-        Vector3Int playerCell = world.WorldToCell(turnHandler.activePlayer.transform.position);
-        highlighter.SetTile(playerCell, floor_tile_asset);
-        highlighter.SetTileFlags(playerCell, TileFlags.None);
-        highlighter.SetColor(playerCell, Color.magenta);
-        if (turnHandler.activePlayer.moves > 0)
-        {
-            HighlightNeighbors(playerCell);
-        }
     }
 
     bool addingRoom = false;
@@ -463,67 +455,71 @@ public class TileWorld : MonoBehaviour
              SceneManager.LoadScene("End_Scene", LoadSceneMode.Single);
          }*/
         activePlayerPos = new Vector3(Mathf.Round(turnHandler.activePlayer.transform.position.x * 10) / 10, Mathf.Round(turnHandler.activePlayer.transform.position.y * 10) / 10, zAxis);
-        if (!(activePlayerPos.x == RoundOffset(turnHandler.activePlayer.tileRoom.startX) ||
+        if (turnHandler.activePlayer.tileRoom != null && !(activePlayerPos.x == RoundOffset(turnHandler.activePlayer.tileRoom.startX) ||
             activePlayerPos.x == RoundOffset(turnHandler.activePlayer.tileRoom.startX + 8) ||
             activePlayerPos.y == RoundOffset(turnHandler.activePlayer.tileRoom.startY) ||
             activePlayerPos.y == RoundOffset(turnHandler.activePlayer.tileRoom.startY + 8)))
         {
             addingRoom = false;
         }
+        else
+        {
+            turnHandler.activePlayer.tileRoom = null;
+        }
         if (!addingRoom && 
-            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.tileRoom.startX - 5, turnHandler.activePlayer.tileRoom.startY + 1, zAxis))) == null && 
-            activePlayerPos.x == RoundOffset(turnHandler.activePlayer.tileRoom.startX))
+            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX - 5, turnHandler.activePlayer.prevRoom.startY + 1, zAxis))) == null && 
+            activePlayerPos.x == RoundOffset(turnHandler.activePlayer.prevRoom.startX))
         {
             addingRoom = true;
             if (Random.Range(0, 2) > 0)
             {
-                AddRoom(room_2, (turnHandler.activePlayer.tileRoom.startX - 8), turnHandler.activePlayer.tileRoom.startY);
+                AddRoom(room_2, (turnHandler.activePlayer.prevRoom.startX - 8), turnHandler.activePlayer.prevRoom.startY);
             }
             else
             {
-                AddRoom(room_1, (turnHandler.activePlayer.tileRoom.startX - 8), turnHandler.activePlayer.tileRoom.startY);
+                AddRoom(room_1, (turnHandler.activePlayer.prevRoom.startX - 8), turnHandler.activePlayer.prevRoom.startY);
             }
         }
         else if(!addingRoom &&
-            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.tileRoom.startX + 10, turnHandler.activePlayer.tileRoom.startY + 1, zAxis))) == null &&
-            activePlayerPos.x == RoundOffset(turnHandler.activePlayer.tileRoom.startX + 8))
+            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX + 10, turnHandler.activePlayer.prevRoom.startY + 1, zAxis))) == null &&
+            activePlayerPos.x == RoundOffset(turnHandler.activePlayer.prevRoom.startX + 8))
         {
             addingRoom = true;
             if (Random.Range(0, 2) > 0)
             {
-                AddRoom(room_2, (turnHandler.activePlayer.tileRoom.startX + 8), turnHandler.activePlayer.tileRoom.startY);
+                AddRoom(room_2, (turnHandler.activePlayer.prevRoom.startX + 8), turnHandler.activePlayer.prevRoom.startY);
             }
             else
             {
-                AddRoom(room_1, (turnHandler.activePlayer.tileRoom.startX + 8), turnHandler.activePlayer.tileRoom.startY);
+                AddRoom(room_1, (turnHandler.activePlayer.prevRoom.startX + 8), turnHandler.activePlayer.prevRoom.startY);
             }
         }
         else if (!addingRoom &&
-            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.tileRoom.startX + 1, turnHandler.activePlayer.tileRoom.startY - 5, zAxis))) == null &&
-            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.tileRoom.startY))
+            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX + 1, turnHandler.activePlayer.prevRoom.startY - 5, zAxis))) == null &&
+            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.prevRoom.startY))
         {
             addingRoom = true;
             if (Random.Range(0, 2) > 0)
             {
-                AddRoom(room_2, (turnHandler.activePlayer.tileRoom.startX), turnHandler.activePlayer.tileRoom.startY - 8);
+                AddRoom(room_2, (turnHandler.activePlayer.prevRoom.startX), turnHandler.activePlayer.prevRoom.startY - 8);
             }
             else
             {
-                AddRoom(room_1, (turnHandler.activePlayer.tileRoom.startX), turnHandler.activePlayer.tileRoom.startY - 8);
+                AddRoom(room_1, (turnHandler.activePlayer.prevRoom.startX), turnHandler.activePlayer.prevRoom.startY - 8);
             }
         }
         else if (!addingRoom &&
-            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.tileRoom.startX + 1, turnHandler.activePlayer.tileRoom.startY + 10, zAxis))) == null &&
-            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.tileRoom.startY + 8))
+            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX + 1, turnHandler.activePlayer.prevRoom.startY + 10, zAxis))) == null &&
+            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.prevRoom.startY + 8))
         {
             addingRoom = true;
             if (Random.Range(0, 2) > 0)
             {
-                AddRoom(room_2, (turnHandler.activePlayer.tileRoom.startX), turnHandler.activePlayer.tileRoom.startY + 8);
+                AddRoom(room_2, (turnHandler.activePlayer.prevRoom.startX), turnHandler.activePlayer.prevRoom.startY + 8);
             }
             else
             {
-                AddRoom(room_1, (turnHandler.activePlayer.tileRoom.startX), turnHandler.activePlayer.tileRoom.startY + 8);
+                AddRoom(room_1, (turnHandler.activePlayer.prevRoom.startX), turnHandler.activePlayer.prevRoom.startY + 8);
             }
         }
     }

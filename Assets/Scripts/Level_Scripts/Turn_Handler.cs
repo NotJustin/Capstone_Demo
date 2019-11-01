@@ -11,17 +11,18 @@ public class Turn_Handler : MonoBehaviour
     public Enemies enemyScript;
 
     public List<Player> playerList;
-    public List<IEnemy> enemyList;
-    public List<IEnemy> despawnedEnemies;
+    public List<GameObject> enemyList;
+    public List<GameObject> despawnedEnemies;
 
     private int remainingPlayerTurns;
-    public Player activePlayer;
-    public bool changeTurn = false;
+    public bool enemyTurn = false;
+    public bool playerTurn = false;
 
     public GameObject tileWorldObj;
     TileWorld tileWorld;
 
-    public Player firstPlayer;
+    public Player firstPlayer, activePlayer;
+    public IEnemy activeEnemy;
 
     public bool confirm = false;
 
@@ -30,7 +31,7 @@ public class Turn_Handler : MonoBehaviour
         tileWorld = tileWorldObj.GetComponent<TileWorld>();
         playerList = new List<Player>();
         enemyList = enemies.GetComponent<Enemies>().enemies;
-        despawnedEnemies = new List<IEnemy>();
+        despawnedEnemies = new List<GameObject>();
         foreach (Transform child in players.transform)
         {
             Player player = child.GetComponent<Player>();
@@ -45,62 +46,44 @@ public class Turn_Handler : MonoBehaviour
         
     }
 
-    //bool enemyTurn = false;
-
     void Update()
     {
-        //Debug.Log(activePlayer);
-        if (changeTurn)
+        if (playerTurn)
+        {
+            if (!activePlayer.moving && !activePlayer.turnStarted)
+            {
+                playerList.Add(activePlayer);
+                playerList.RemoveAt(0);
+                activePlayer = playerList[0];
+                activePlayer.HighlightStartPosition();
+                activePlayer.StartTurn();
+            }
+        }
+        else if(enemyTurn)
         {
             if (enemyList.Count > 0)
             {
+                activeEnemy = FetchEnemyType(enemyList);
+            }
+            else
+            {
+                enemyTurn = false;
+                playerTurn = true;
+            }
+            if (enemyList.Count > 0 && !activeEnemy.awaitMovement && !activeEnemy.turnStarted)
+            {
                 enemyList.Add(enemyList[0]);
                 enemyList.RemoveAt(0);
-            }
-            //Debug.Log("Changing turn");
-            /// Set changeTurn to false because we used it to get into this conditional and don't want to do it again.
-            changeTurn = false;
-            //enemyTurn = true;
-            /// Unhighlights any yellow tiles
-            tileWorld.UnhighlightOldNeighbors();
-            /// Unhighlights all selected tiles
-            activePlayer.ClearPath();
-            /// Add the current activePlayer to the end of the list
-            playerList.Add(activePlayer);
-            /// Remove the current activePlayer from the front of the list
-            playerList.RemoveAt(0);
-            //enemyTurn = false;
-            if (enemyList.Count > 0 && !enemyList[0].awaitMovement)
-            {
-                /// Set activePlayer to be the new front of the list
-                activePlayer = playerList[0];
-                /// Get the coordinate of the activePlayer's cell on the tileMap
-                Vector3Int playerCell = tileWorld.world.WorldToCell(activePlayer.transform.position);
-                /// Set the flags to none so that we can change the color to magenta
-                tileWorld.highlighter.SetTileFlags(playerCell, TileFlags.None);
-                tileWorld.highlighter.SetTile(playerCell, tileWorld.floor_tile_asset);
-                /// Change the tile's color to magenta
-                tileWorld.highlighter.SetColor(playerCell, Color.magenta);
-                /// Increment/reset things related to this character since their turn is just beginning now.
-                activePlayer.StartTurn();
-                /// Highlight the neighboring cells as yellow tiles.
-                tileWorld.HighlightNeighbors(playerCell);
+                activeEnemy = FetchEnemyType(enemyList);
             }
         }
-        if (enemyList.Count > 0 && enemyList[0].awaitMovement)
+    }
+    public IEnemy FetchEnemyType(List<GameObject> enemyList)
+    {
+        if (enemyList[0].tag == "thrasher")
         {
-            transform.position = new Vector3(enemyList[0].obj.transform.position.x, enemyList[0].obj.transform.position.y, -10);
-            enemyList[0].PrimaryAttack();
+            return enemyList[0].GetComponent<ThrasherScript>().thrasher;
         }
-        else
-        {
-            //Debug.Log(enemyList.Count);
-            //Debug.Log(activePlayer);
-            transform.position = new Vector3(activePlayer.transform.position.x, activePlayer.transform.position.y, -10);
-            if (confirm && activePlayer.pendingMoves > 0 && activePlayer.path.Count > 0)
-            {
-                activePlayer.MovePlayer();
-            }
-        }
+        return null;
     }
 }

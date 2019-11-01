@@ -36,23 +36,28 @@ public class guiScript : MonoBehaviour
 
         if (!turnHandler.activePlayer.moving && GUI.Button(new Rect(5, (140 + 5), 100, 40), "End turn"))
         {
-            //Debug.Log("Enemy turn");
-            if (turnHandler.enemyList.Count > 0)
+            if (turnHandler.playerTurn)
             {
-                turnHandler.enemyList[0].PrimaryAttack();
-            }
-            else
-            {
-                turnHandler.changeTurn = true;
+                turnHandler.activePlayer.turnStarted = false;
+                turnHandler.playerTurn = false;
+                turnHandler.activePlayer.ClearPath();
+                turnHandler.enemyTurn = true;
             }
         }
 
         GUI.Label(new Rect(5, 220, 200, 20), "Moves remaining: " + turnHandler.activePlayer.moves);
         GUI.Label(new Rect(5, 240, 200, 20), "Moves pending: " + turnHandler.activePlayer.pendingMoves);
-        GUI.Label(new Rect(5, 200, 200, 20), "Player room number: " + turnHandler.activePlayer.tileRoom.number);
-        if (turnHandler.enemyList.Count > 0 && turnHandler.enemyList[0].awaitMovement)
+        if (turnHandler.activePlayer.tileRoom == null)
         {
-            GUI.Label(new Rect(5, 180, 200, 20), "Selected: " + turnHandler.enemyList[0].obj.transform.name);
+            GUI.Label(new Rect(5, 200, 200, 20), "Player is in doorway");
+        }
+        else
+        {
+            GUI.Label(new Rect(5, 200, 200, 20), "Player room number: " + turnHandler.activePlayer.tileRoom.number);
+        }
+        if (turnHandler.enemyList.Count > 0 && turnHandler.activeEnemy.awaitMovement)
+        {
+            GUI.Label(new Rect(5, 180, 200, 20), "Selected: " + turnHandler.activeEnemy.obj.transform.name);
         }
         else
         {
