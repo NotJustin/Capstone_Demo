@@ -67,12 +67,17 @@
     <Compile Include="Assets\Scripts\Level_Scripts\Cursor.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Enemies.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Enemy Scripts\Maggot.cs" />
+<<<<<<< Updated upstream
     <Compile Include="Assets\Scripts\Level_Scripts\Enemy Scripts\Thrasher.cs" />
+=======
+    <Compile Include="Assets\Scripts\Level_Scripts\Enemy Scripts\ThrasherScript.cs" />
+>>>>>>> Stashed changes
     <Compile Include="Assets\Scripts\Level_Scripts\guiScript.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\TileWorld.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Turn_Handler.cs" />
     <Compile Include="Assets\Scripts\Menu_Scripts\GUI_buttons.cs" />
+<<<<<<< Updated upstream
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
     <None Include="Assets\Scripts\Level_Scripts\enemies_temp.cs.txt" />
@@ -92,6 +97,9 @@
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Sprite.shader" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface.shader" />
+=======
+    <None Include="Assets\Scripts\Level_Scripts\enemies_temp.cs.txt" />
+>>>>>>> Stashed changes
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>C:/Users/Haris/Desktop/CAPSTONE/Capstone_Demo/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
