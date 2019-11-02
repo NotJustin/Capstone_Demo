@@ -18,10 +18,9 @@ public class Thrasher : IEnemy
             range = 1.0f;
             attacked = true;
         }
-        if (!startedMoving)
+        if (!awaitMovement)
         {
             awaitMovement = true;
-            startedMoving = true;
             moves = 2;
             prevMoves = 2;
             path = FindPathToNearestPlayer();
@@ -45,5 +44,25 @@ public class Thrasher : IEnemy
     public override void SpecialAttack()
     {
 
+    }
+}
+
+public class ThrasherScript : MonoBehaviour
+{
+    public Thrasher thrasher;
+    Turn_Handler turnHandler;
+    void Awake()
+    {
+        thrasher = new Thrasher(this.transform.gameObject);
+        turnHandler = thrasher.turnHandlerObj.GetComponent<Turn_Handler>();
+    }
+    void Update()
+    {
+        if (turnHandler.enemyTurn && turnHandler.activeEnemy == thrasher)
+        {
+            Debug.Log("test");
+            turnHandler.transform.position = new Vector3(transform.position.x, transform.position.y, -10);
+            thrasher.PrimaryAttack();
+        }
     }
 }

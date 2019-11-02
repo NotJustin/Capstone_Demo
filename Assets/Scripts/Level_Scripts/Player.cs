@@ -20,7 +20,6 @@ public class Player : MonoBehaviour
     public float playerSpeed = 0.25f;
     public int pendingMoves = 0;
     public bool moving = false;
-    public bool selected;
     public bool started = false;
 
     public Vector3Int start;
@@ -36,6 +35,8 @@ public class Player : MonoBehaviour
     public TileRoom prevRoom;
 
     public List<Vector3Int> path;
+
+    public bool turnStarted = false;
     void Start()
     {
         tileWorldObj = GameObject.FindGameObjectWithTag("TileWorld");
@@ -50,36 +51,14 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        /*Debug.Log("player at x: " + Mathf.Round(transform.position.x * 10) / 10);
-        Debug.Log("player at y: " + Mathf.Round(transform.position.y * 10) / 10);
-        Debug.Log("tile i want at x: " + RoundOffset(tileRoom.startX + 9));
-        Debug.Log("tile i want at x: " + RoundOffset(tileRoom.startX - 1));
-        Debug.Log("tile i want at x: " + RoundOffset(tileRoom.startX + 1));
-        Debug.Log("tile i want at y: " + RoundOffset(tileRoom.startY + 9));
-        Debug.Log("tile i want at y: " + RoundOffset(tileRoom.startY - 1));
-        Debug.Log("tile i want at y: " + RoundOffset(tileRoom.startY + 1));*/
-        /*if (!(Mathf.Round(transform.position.x * 100) / 100 == RoundOffset(tileRoom.startX - 1) ||
-            Mathf.Round(transform.position.x * 100) / 100 == RoundOffset(tileRoom.startX + 1) ||
-            Mathf.Round(transform.position.x * 100) / 100 == RoundOffset(tileRoom.startX + 9) ||
-            Mathf.Round(transform.position.y * 100) / 100 == RoundOffset(tileRoom.startY + 9) ||
-            Mathf.Round(transform.position.y * 100) / 100 == RoundOffset(tileRoom.startY - 1) ||
-            Mathf.Round(transform.position.y * 100) / 100 == RoundOffset(tileRoom.startY + 1)))
+        if (turnHandler.activePlayer == this && turnHandler.playerTurn)
         {
-            //Debug.Log("no longer updating");
-            updating = false;
+            turnHandler.transform.position = new Vector3(transform.position.x, transform.position.y, -10);
+            if (turnHandler.confirm && pendingMoves > 0 && path.Count > 0)
+            {
+                MovePlayer();
+            }
         }
-
-        if (!updating && (Mathf.Round(transform.position.x * 10) / 10 == RoundOffset(tileRoom.startX - 1) ||
-            Mathf.Round(transform.position.x * 10) / 10 == RoundOffset(tileRoom.startX + 1) ||
-            Mathf.Round(transform.position.x * 10) / 10 == RoundOffset(tileRoom.startX + 9) ||
-            Mathf.Round(transform.position.y * 10) / 10 == RoundOffset(tileRoom.startY + 9) ||
-            Mathf.Round(transform.position.y * 10) / 10 == RoundOffset(tileRoom.startY - 1) ||
-            Mathf.Round(transform.position.y * 10) / 10 == RoundOffset(tileRoom.startY + 1)))
-        {
-            updating = true;
-            Debug.Log("updating room");
-            UpdateRoom();
-        }*/
     }
 
     public void UpdateRoom()
@@ -193,20 +172,17 @@ public class Player : MonoBehaviour
         if (!moving)
         {
             tileWorld.UnhighlightOldNeighbors();
-            for (int i = 0; i < path.Count; i++)
+            /*for (int i = 0; i < path.Count; i++)
             {
                 Color color = new Color(0.0f, 0.0f, 0.0f, 0.25f);
-                tileWorld.highlighter.SetTile(path[i], tileWorld.floor_tile_asset);
-                tileWorld.highlighter.SetColor(path[i], color);
-            }
+                //tileWorld.highlighter.SetTile(path[i], tileWorld.floor_tile_asset);
+                //tileWorld.highlighter.SetColor(path[i], color);
+            }*/
             moving = true;
             startTime = Time.time;
             destination = new Vector3(RoundOffset(path[0].x), RoundOffset(path[0].y), zAxis);
             totalDistance = Vector3.Distance(transform.position, destination);
-            Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
-            //tileWorld.highlighter.SetTileFlags(playerCell, TileFlags.None);
-            tileWorld.highlighter.SetTile(playerCell, tileWorld.empty_tile_asset);
-            //tileWorld.highlighter.SetColor(playerCell, Color.white);
+            tileWorld.highlighter.SetTile(tileWorld.world.WorldToCell(transform.position), tileWorld.empty_tile_asset);
         }
         else
         {
@@ -275,7 +251,7 @@ public class Player : MonoBehaviour
         tileWorld.UnhighlightOldNeighbors();
         pendingMoves = 0;
         Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
-        tileWorld.highlighter.SetTile(playerCell, tileWorld.floor_tile_asset);
+        tileWorld.highlighter.SetTile(playerCell, tileWorld.empty_tile_asset);
         tileWorld.highlighter.SetTileFlags(playerCell, TileFlags.None);
         tileWorld.highlighter.SetColor(playerCell, Color.white);
         foreach (Vector3Int coordinate in path)
@@ -289,8 +265,22 @@ public class Player : MonoBehaviour
         start = tileWorld.world.WorldToCell(transform.position);
     }
 
+    /// Increment/reset things related to this character since their turn is just beginning now.
     public void StartTurn()
     {
+        turnStarted = true;
         moves = maxMoves;
     }
+
+    public void HighlightStartPosition()
+    {
+        Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
+        /// Set the flags to none so that we can change the color to magenta
+        tileWorld.highlighter.SetTileFlags(playerCell, TileFlags.None);
+        tileWorld.highlighter.SetTile(playerCell, tileWorld.floor_tile_asset);
+        /// Change the tile's color to magenta
+        tileWorld.highlighter.SetColor(playerCell, Color.magenta);
+        tileWorld.HighlightNeighbors(playerCell);
+    }
+
 }
