@@ -150,7 +150,6 @@ public class TileWorld : MonoBehaviour
     /// You can imagine there is an implicit "this" in front of GetComponent, like: "this.GetComponent<SpriteRenderer>();".
     /// However, if I want to get a component from the player GameObject, I have to type "player.GetComponent<NameOfComponent>();"
     public GameObject tileMapWorldObj;
-    public GameObject highlighterObj;
     public GameObject turnHandlerObj;
     public GameObject cursorObj;
     public GameObject room_1;
