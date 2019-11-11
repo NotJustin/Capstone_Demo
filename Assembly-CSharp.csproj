@@ -71,6 +71,9 @@
     <Compile Include="Assets\Scripts\Level_Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\TileWorld.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Turn_Handler.cs" />
+    <Compile Include="Assets\Scripts\Menu_Scripts\Button Sound Scripts\helpButtonFX.cs" />
+    <Compile Include="Assets\Scripts\Menu_Scripts\Button Sound Scripts\optionsButtonFX.cs" />
+    <Compile Include="Assets\Scripts\Menu_Scripts\Button Sound Scripts\playButtonFX.cs" />
     <Compile Include="Assets\Scripts\Menu_Scripts\GUI_buttons.cs" />
     <Compile Include="Assets\Scripts\Menu_Scripts\MainMenu1.cs" />
     <None Include="Assets\Packages\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface-Mobile.shader" />
