@@ -62,6 +62,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\cursorscript.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Card.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Cursor.cs" />
     <Compile Include="Assets\Scripts\Level_Scripts\Enemies.cs" />
