@@ -461,6 +461,7 @@ public class TileWorld : MonoBehaviour
 
     void Update()
     {
+        //Debug.Log(world);
         /* if (tileMap.GetTile(tileMap.WorldToCell(turnHandler.activePlayer.transform.position)).name.Contains("win"))
          {
              SceneManager.LoadScene("End_Scene", LoadSceneMode.Single);
