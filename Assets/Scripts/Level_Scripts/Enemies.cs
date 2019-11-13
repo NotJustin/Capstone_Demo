@@ -3,6 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+public class DespawnedEnemy
+{
+    public string name;
+    public int health;
+    public DespawnedEnemy(string _name, int _health)
+    {
+        name = _name;
+        health = _health;
+    }
+}
+
 public abstract class IEnemy
 {
     public GameObject turnHandlerObj;
@@ -392,7 +403,6 @@ public abstract class IEnemy
 public class Enemies : MonoBehaviour
 {
     public GameObject thrasher;
-    public List<GameObject> enemies;
     public List<GameObject> tierOneEnemies, tierTwoEnemies, tierThreeEnemies, tierFourEnemies;
 
     public GameObject turnHandlerObj;
@@ -401,7 +411,7 @@ public class Enemies : MonoBehaviour
     void Awake()
     {
         tierTwoEnemies.Add(thrasher);
-        enemies = new List<GameObject>();
+        //enemies = new List<GameObject>();
         //activeEnemy = null;
         //tierOneEnemies.Add("Maggot");
         //tierTwoEnemies.Add("Thrasher");
@@ -411,28 +421,6 @@ public class Enemies : MonoBehaviour
             //Debug.Log("child gameobject = " + child.gameObject);
             child.position = new Vector3(RoundOffset(child.position.x), RoundOffset(child.position.y), child.position.z);
         }*/
-    }
-
-    void Start()
-    {
-        turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
-        Vector3 position = new Vector3(2.5f, 2.5f, 0);
-        foreach (GameObject enemy in tierTwoEnemies)
-        {
-            GameObject newEnemy = Instantiate(enemy, position, Quaternion.identity) as GameObject;
-            newEnemy.transform.parent = GameObject.FindGameObjectWithTag("Enemies").transform;
-            enemies.Add(newEnemy);
-            //Debug.Log("child gameobject = " + child.gameObject);
-        }
-        Debug.Log(enemies[0].GetComponent<ThrasherScript>().thrasher);
-        turnHandler.activeEnemy = turnHandler.FetchEnemyType(enemies);
-        turnHandler.activeEnemy.UpdateRoom();
-        Debug.Log(turnHandler.activeEnemy);
-    }
-
-    void Update()
-    {
-
     }
 
     public float RoundOffset(float a)

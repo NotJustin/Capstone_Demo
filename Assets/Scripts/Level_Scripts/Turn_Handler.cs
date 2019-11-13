@@ -10,9 +10,15 @@ public class Turn_Handler : MonoBehaviour
 
     public Enemies enemyScript;
 
+    /*public struct DespawnedEnemy
+    {
+        string name;
+        int health;
+    }*/
+
     public List<Player> playerList;
     public List<GameObject> enemyList;
-    public List<GameObject> despawnedEnemies;
+    public List<DespawnedEnemy> despawnedEnemies;
 
     private int remainingPlayerTurns;
     public bool enemyTurn = false;
@@ -30,8 +36,8 @@ public class Turn_Handler : MonoBehaviour
     {
         tileWorld = tileWorldObj.GetComponent<TileWorld>();
         playerList = new List<Player>();
-        enemyList = enemies.GetComponent<Enemies>().enemies;
-        despawnedEnemies = new List<GameObject>();
+        //enemyList = enemies.GetComponent<Enemies>().enemies;
+        despawnedEnemies = new List<DespawnedEnemy>();
         foreach (Transform child in players.transform)
         {
             Player player = child.GetComponent<Player>();
@@ -63,7 +69,7 @@ public class Turn_Handler : MonoBehaviour
         {
             if (enemyList.Count > 0)
             {
-                activeEnemy = FetchEnemyType(enemyList);
+                activeEnemy = FetchEnemyType(enemyList[0]);
             }
             else
             {
@@ -74,15 +80,15 @@ public class Turn_Handler : MonoBehaviour
             {
                 enemyList.Add(enemyList[0]);
                 enemyList.RemoveAt(0);
-                activeEnemy = FetchEnemyType(enemyList);
+                activeEnemy = FetchEnemyType(enemyList[0]);
             }
         }
     }
-    public IEnemy FetchEnemyType(List<GameObject> enemyList)
+    public IEnemy FetchEnemyType(GameObject enemy)
     {
-        if (enemyList[0].tag == "thrasher")
+        if (enemy.tag == "thrasher")
         {
-            return enemyList[0].GetComponent<ThrasherScript>().thrasher;
+            return enemy.GetComponent<ThrasherScript>().thrasher;
         }
         return null;
     }

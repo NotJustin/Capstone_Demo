@@ -60,7 +60,6 @@ public class ThrasherScript : MonoBehaviour
     {
         if (turnHandler.enemyTurn && turnHandler.activeEnemy == thrasher)
         {
-            Debug.Log("test");
             turnHandler.transform.position = new Vector3(transform.position.x, transform.position.y, -10);
             thrasher.PrimaryAttack();
         }

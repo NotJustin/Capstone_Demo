@@ -35,9 +35,13 @@ public class TileRoom
     public TileRoom up, down, left, right;
     int x, y;
     public TileBase empty_tile_asset;
-    public List<IEnemy> enemies;
+    public List<GameObject> enemies;
+    public GameObject turnHandlerObj;
+    public Turn_Handler turnHandler;
     public TileRoom(Tilemap _world, Tilemap _map, int _number, int _x, int _y)
     {
+        turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
+        turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
         world = _world;
         map = _map;
         number = _number;
@@ -52,7 +56,7 @@ public class TileRoom
         left = null;
         right = null;
         playerCount = 0;
-        enemies = new List<IEnemy>();
+        enemies = new List<GameObject>();
     }
     TileClass AddTile(int _number, int x, int y)
     {
@@ -118,12 +122,20 @@ public class TileRoom
             }
         }
     }
+
     public void HideRoom()
     {
         foreach (TileClass tile in tiles)
         {
             Vector3Int newCell = new Vector3Int(tile.cell.x, tile.cell.y, 0);
             world.SetColor(newCell, new Color(1, 1, 1, 0.1f));
+        }
+        foreach (GameObject enemy in enemies)
+        {
+            IEnemy newEnemy = turnHandler.FetchEnemyType(enemy);
+            DespawnedEnemy despawnedEnemy = new DespawnedEnemy(enemy.tag, newEnemy.health);
+            turnHandler.despawnedEnemies.Add(despawnedEnemy);
+            turnHandler.enemyList.Remove(enemy);
         }
     }
     public void ShowRoom()

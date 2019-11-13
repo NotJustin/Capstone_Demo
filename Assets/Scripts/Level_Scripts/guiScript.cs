@@ -47,7 +47,11 @@ public class guiScript : MonoBehaviour
 
         GUI.Label(new Rect(5, 220, 200, 20), "Moves remaining: " + turnHandler.activePlayer.moves);
         GUI.Label(new Rect(5, 240, 200, 20), "Moves pending: " + turnHandler.activePlayer.pendingMoves);
-        if (turnHandler.activePlayer.tileRoom == null)
+        if (turnHandler.enemyTurn && turnHandler.activeEnemy != null)
+        {
+            GUI.Label(new Rect(5, 200, 200, 20), "Enemy room number: " + turnHandler.activeEnemy.tileRoom.number);
+        }
+        else if (turnHandler.activePlayer.tileRoom == null)
         {
             GUI.Label(new Rect(5, 200, 200, 20), "Player is in doorway");
         }
