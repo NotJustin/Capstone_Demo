@@ -5,62 +5,73 @@ using UnityEngine.Tilemaps;
 using UnityEngine.SceneManagement;
 
 
-public class TileClass
+public class Tile
 {
     public int type;
     public int f;
     public int g;
     public int h;
     public int room;
-    public TileClass parent;
+    public Tile parent;
     public TileBase tileBase;
     public Vector3Int cell;
     public Vector3 position;
 
-    public TileClass()
+    public Tile()
     {
 
     }
 }
 
-public class TileRoom
+public class Room
 {
-    public TileClass[,] tiles;
+    public Tile[,] tiles;
     public int number;
     public int playerCount;
     public Tilemap map;
     public Tilemap world;
     public int roomSize = 7;
     public int startX, startY;
-    public TileRoom up, down, left, right;
     int x, y;
     public TileBase empty_tile_asset;
     public List<GameObject> enemies;
     public GameObject turnHandlerObj;
     public Turn_Handler turnHandler;
-    public TileRoom(Tilemap _world, Tilemap _map, int _number, int _x, int _y)
+    public Room(Tilemap _world, Tilemap _map, int _number, int _x, int _y)
     {
         turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
         turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
         world = _world;
         map = _map;
         number = _number;
-        tiles = new TileClass[roomSize, roomSize];
+        tiles = new Tile[roomSize, roomSize];
         startX = _x;
         startY = _y;
         x = _x;
         y = _y;
         GenerateTileList(map, x, y);
-        up = null;
-        down = null;
-        left = null;
-        right = null;
+        SpawnEnemies();
         playerCount = 0;
         enemies = new List<GameObject>();
     }
-    TileClass AddTile(int _number, int x, int y)
+
+    void SpawnEnemies()
     {
-        TileClass tile = new TileClass();
+        int enemyOne = 31, enemyTwo = 32, enemyThree = 33, enemyFour = 34;
+        for (int x = 0; x < tiles.GetLength(0); x++)
+        {
+            for (int y = 0; y < tiles.GetLength(1); y++)
+            {
+                if (tiles[x, y].type == enemyOne)
+                {
+                    Instantiate()
+                }
+            }
+        }
+    }
+    Tile AddTile(int _number, int x, int y)
+    {
+        Tile tile = new Tile();
         tile.room = number;
         tile.cell = new Vector3Int(x + startX + 1, y + startY + 1, 0);
         tile.tileBase = map.GetTile(new Vector3Int(x + 1, y + 1, 0));
@@ -123,9 +134,9 @@ public class TileRoom
         }
     }
 
-    public void HideRoom()
+    public void Hide()
     {
-        foreach (TileClass tile in tiles)
+        foreach (Tile tile in tiles)
         {
             Vector3Int newCell = new Vector3Int(tile.cell.x, tile.cell.y, 0);
             world.SetColor(newCell, new Color(1, 1, 1, 0.1f));
@@ -138,9 +149,9 @@ public class TileRoom
             turnHandler.enemyList.Remove(enemy);
         }
     }
-    public void ShowRoom()
+    public void Show()
     {
-        foreach (TileClass tile in tiles)
+        foreach (Tile tile in tiles)
         {
             Vector3Int newCell = new Vector3Int(tile.cell.x, tile.cell.y, 0);
             world.SetTile(newCell, tile.tileBase);
@@ -150,7 +161,7 @@ public class TileRoom
     }
 }
 
-public class TileWorld : MonoBehaviour
+public class World : MonoBehaviour
 {
     /// These are references to GameObjects in the Unity scene.
     /// I use them so that this script can interact with components on these game objects.
@@ -202,10 +213,10 @@ public class TileWorld : MonoBehaviour
     int spawnAmount = 0;
 
     int roomCount = 0;
-    TileRoom firstRoom;
-    public List<TileRoom> rooms;
+    Room firstRoom;
+    public List<Room> rooms;
 
-    public void GenerateWalls(TileRoom room)
+    public void GenerateWalls(Room room)
     {
         int doorMin = 1, doorMax = 4, wallsLeft = 4, doorCount = Random.Range(doorMin, doorMax + 1), doorCountStart = doorCount;
 
@@ -232,7 +243,7 @@ public class TileWorld : MonoBehaviour
         }
     }
 
-    public bool HasGenerator(TileRoom room)
+    public bool HasGenerator(Room room)
     {
         for (int x = 0; x < room.roomSize; x++)
         {
@@ -247,7 +258,7 @@ public class TileWorld : MonoBehaviour
         return false;
     }
 
-    public int GenerateLeftWall(TileRoom room, int x, int y, int wallsLeft, int doorCount)
+    public int GenerateLeftWall(Room room, int x, int y, int wallsLeft, int doorCount)
     {
         Vector3Int cell;
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
@@ -281,7 +292,7 @@ public class TileWorld : MonoBehaviour
         return doorCount;
     }
 
-    public int GenerateUpWall(TileRoom room, int x, int y, int wallsLeft, int doorCount)
+    public int GenerateUpWall(Room room, int x, int y, int wallsLeft, int doorCount)
     {
         Vector3Int cell;
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
@@ -315,7 +326,7 @@ public class TileWorld : MonoBehaviour
         return doorCount;
     }
 
-    public int GenerateRightWall(TileRoom room, int x, int y, int wallsLeft, int doorCount)
+    public int GenerateRightWall(Room room, int x, int y, int wallsLeft, int doorCount)
     {
         Vector3Int cell;
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
@@ -349,7 +360,7 @@ public class TileWorld : MonoBehaviour
         return doorCount;
     }
 
-    public int GenerateDownWall(TileRoom room, int x, int y, int wallsLeft, int doorCount)
+    public int GenerateDownWall(Room room, int x, int y, int wallsLeft, int doorCount)
     {
         Vector3Int cell;
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
@@ -382,12 +393,12 @@ public class TileWorld : MonoBehaviour
         return doorCount;
     }
 
-    public TileRoom AddRoom(GameObject room, int x, int y)
+    public Room AddRoom(GameObject room, int x, int y)
     {
         roomCount++;
-        TileRoom newRoom = new TileRoom(world, room.GetComponent<Tilemap>(), roomCount, x, y);
+        Room newRoom = new Room(world, room.GetComponent<Tilemap>(), roomCount, x, y);
         GenerateWalls(newRoom);
-        newRoom.ShowRoom();
+        newRoom.Show();
         rooms.Add(newRoom);
         return newRoom;
     }
@@ -398,7 +409,7 @@ public class TileWorld : MonoBehaviour
         gui = camera.GetComponent<guiScript>();
         cursor = cursorObj.GetComponent<Cursor>();
         turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
-        rooms = new List<TileRoom>();
+        rooms = new List<Room>();
         firstRoom = AddRoom(room_1, 0, 0);
         world = tileMapWorldObj.GetComponent<Tilemap>();
         turnHandler.Initialize();
@@ -409,8 +420,6 @@ public class TileWorld : MonoBehaviour
     {
 
         /// Initializing lists/arrays by creating new ones.
-        doors = new List<Vector3Int>();
-        wires = new List<Vector3Int>();
         spawns = new Vector3Int[turnHandler.players.transform.childCount];
         firstRoom.playerCount = spawns.Length;
 
@@ -466,16 +475,16 @@ public class TileWorld : MonoBehaviour
              SceneManager.LoadScene("End_Scene", LoadSceneMode.Single);
          }*/
         activePlayerPos = new Vector3(Mathf.Round(turnHandler.activePlayer.transform.position.x * 10) / 10, Mathf.Round(turnHandler.activePlayer.transform.position.y * 10) / 10, zAxis);
-        if (turnHandler.activePlayer.tileRoom != null && !(activePlayerPos.x == RoundOffset(turnHandler.activePlayer.tileRoom.startX) ||
-            activePlayerPos.x == RoundOffset(turnHandler.activePlayer.tileRoom.startX + 8) ||
-            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.tileRoom.startY) ||
-            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.tileRoom.startY + 8)))
+        if (turnHandler.activePlayer.room != null && !(activePlayerPos.x == RoundOffset(turnHandler.activePlayer.room.startX) ||
+            activePlayerPos.x == RoundOffset(turnHandler.activePlayer.room.startX + 8) ||
+            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.room.startY) ||
+            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.room.startY + 8)))
         {
             addingRoom = false;
         }
         else
         {
-            turnHandler.activePlayer.tileRoom = null;
+            turnHandler.activePlayer.room = null;
         }
         if (!addingRoom && 
             world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX - 5, turnHandler.activePlayer.prevRoom.startY + 1, zAxis))) == null && 
@@ -677,7 +686,7 @@ public class TileWorld : MonoBehaviour
     public void OpenDoors(Player player)
     {
         Vector3 start = player.transform.position;
-        int room = player.tileRoom.number;
+        int room = player.room.number;
         int roomIndex = -1;
         int x = -1, y = -1;
         int xCoor, yCoor;

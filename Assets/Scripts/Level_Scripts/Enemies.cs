@@ -17,19 +17,19 @@ public class DespawnedEnemy
 public abstract class IEnemy
 {
     public GameObject turnHandlerObj;
-    GameObject tileWorldObj;
+    GameObject worldObj;
     public int health;
     public GameObject obj;
-    TileWorld tileWorld;
+    World world;
     List<Player> playerList;
-    public TileRoom tileRoom;
+    public Room room;
     public bool awaitMovement;
     public bool turnStarted;
     public bool attacked;
     public int moves;
     public int prevMoves;
     public float range;
-    public List<TileClass> path;
+    public List<Tile> path;
     public int tier;
 
     public bool moving;
@@ -47,47 +47,47 @@ public abstract class IEnemy
         attacked = false;
         awaitMovement = false;
         turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
-        tileWorldObj = GameObject.FindGameObjectWithTag("TileWorld");
-        tileWorld = tileWorldObj.GetComponent<TileWorld>();
+        worldObj = GameObject.FindGameObjectWithTag("World");
+        world = worldObj.GetComponent<World>();
     }
 
     public abstract void PrimaryAttack();
     public abstract void SecondaryAttack();
     public abstract void SpecialAttack();
 
-    public List<TileClass> FindPathToNearestPlayer()
+    public List<Tile> FindPathToNearestPlayer()
     {
-        //world = tileWorld.world;
-        //world = new TileClass[2,2];
+        //world = world.world;
+        //world = new Tile[2,2];
 
         /// setting all parents to null before creating paths because otherwise infinite loop problems occur.
 
-        for (int x = 0; x < tileRoom.tiles.GetLength(0); x++)
+        for (int x = 0; x < room.tiles.GetLength(0); x++)
         {
-            for (int y = 0; y < tileRoom.tiles.GetLength(1); y++)
+            for (int y = 0; y < room.tiles.GetLength(1); y++)
             {
-                tileRoom.tiles[x, y].parent = null;
+                room.tiles[x, y].parent = null;
             }
         }
         playerList = turnHandlerObj.GetComponent<Turn_Handler>().playerList;
-        List<TileClass> closestPath = null;
-        List<TileClass> currentPath = new List<TileClass>();
+        List<Tile> closestPath = null;
+        List<Tile> currentPath = new List<Tile>();
         foreach (Player player in playerList)
         {
-            if (player.tileRoom == null || tileRoom.number != player.tileRoom.number)
+            if (player.room == null || room.number != player.room.number)
             {
                 continue;
             }
             currentPath.Clear();
-            Vector3Int start = tileWorld.world.WorldToCell(obj.transform.position);
-            Vector3Int goal = tileWorld.world.WorldToCell(player.transform.position);
-            start = new Vector3Int(start.x + tileRoom.startX - 1, start.y + tileRoom.startY - 1, start.z);
-            goal = new Vector3Int(goal.x + tileRoom.startX - 1, goal.y + tileRoom.startY - 1, goal.z);
-            if (tileRoom.tiles[start.x, start.y].room == tileRoom.tiles[goal.x, goal.y].room)
+            Vector3Int start = world.world.WorldToCell(obj.transform.position);
+            Vector3Int goal = world.world.WorldToCell(player.transform.position);
+            start = new Vector3Int(start.x + room.startX - 1, start.y + room.startY - 1, start.z);
+            goal = new Vector3Int(goal.x + room.startX - 1, goal.y + room.startY - 1, goal.z);
+            if (room.tiles[start.x, start.y].room == room.tiles[goal.x, goal.y].room)
             {
-                if (BuildPathAStar(tileRoom.tiles[start.x, start.y], tileRoom.tiles[goal.x, goal.y]))
+                if (BuildPathAStar(room.tiles[start.x, start.y], room.tiles[goal.x, goal.y]))
                 {
-                    TileClass temp = tileRoom.tiles[goal.x, goal.y];
+                    Tile temp = room.tiles[goal.x, goal.y];
                     while (temp.parent != null)
                     {
                         currentPath.Add(temp);
@@ -105,12 +105,12 @@ public abstract class IEnemy
                 }
                 if (closestPath == null)
                 {
-                    closestPath = new List<TileClass>(currentPath);
+                    closestPath = new List<Tile>(currentPath);
                 }
                 else if (closestPath.Count > currentPath.Count)
                 {
                     closestPath.Clear();
-                    closestPath = new List<TileClass>(currentPath);
+                    closestPath = new List<Tile>(currentPath);
                 }
             }
         }
@@ -148,14 +148,14 @@ public abstract class IEnemy
         return closestPath;
     }
 
-    public int GetHeuristic(TileClass start, TileClass goal)
+    public int GetHeuristic(Tile start, Tile goal)
     {
         return (int)Vector3.Distance(start.position, goal.position);
     }
 
-    public bool UpdateF(TileClass current, List<TileClass> open, List<TileClass> closed, TileClass goal)
+    public bool UpdateF(Tile current, List<Tile> open, List<Tile> closed, Tile goal)
     {
-        TileClass previous = closed[closed.Count - 1];
+        Tile previous = closed[closed.Count - 1];
         if (!closed.Contains(current))
         {
             if (!open.Contains(current))
@@ -179,9 +179,9 @@ public abstract class IEnemy
         return false;
     }
 
-    void PopulateAdjacentArray(List<TileClass> adjacent, TileClass tile, TileRoom tRoom)
+    void PopulateAdjacentArray(List<Tile> adjacent, Tile tile, Room tRoom)
     {
-        TileClass neighbor;
+        Tile neighbor;
         if (tile.cell.x > 1 && tile.cell.y > 0)
         {
             neighbor = tRoom.tiles[tile.cell.x - 2, tile.cell.y - 1];
@@ -215,16 +215,16 @@ public abstract class IEnemy
             }
         }
     }
-    public bool BuildPathAStar(TileClass start, TileClass goal)
+    public bool BuildPathAStar(Tile start, Tile goal)
     {
-        List<TileClass> open = new List<TileClass>();
-        List<TileClass> closed = new List<TileClass>();
+        List<Tile> open = new List<Tile>();
+        List<Tile> closed = new List<Tile>();
         open.Add(start);
         start.parent = null;
         start.g = 0;
         bool foundGoal = false;
         bool firstIteration = true;
-        List<TileClass> adjacent = new List<TileClass>();
+        List<Tile> adjacent = new List<Tile>();
         while (open.Count > 0)
         {
             if (open[0] == goal)
@@ -234,9 +234,9 @@ public abstract class IEnemy
             }
             closed.Add(open[0]);
             open.RemoveAt(0);
-            PopulateAdjacentArray(adjacent, closed[closed.Count - 1], tileRoom); //firstRoom
+            PopulateAdjacentArray(adjacent, closed[closed.Count - 1], room); //firstRoom
 
-            foreach (TileClass tile in adjacent)
+            foreach (Tile tile in adjacent)
             {
                 if (firstIteration)
                 {
@@ -287,7 +287,7 @@ public abstract class IEnemy
         turnHandlerObj.GetComponent<Turn_Handler>().playerTurn = true;
     }
 
-    public int MoveAlongPath(List<TileClass> path, float range, int moves)
+    public int MoveAlongPath(List<Tile> path, float range, int moves)
     {
         if (path == null)
         {
@@ -364,7 +364,7 @@ public abstract class IEnemy
 
     }
 
-    public bool InRange(List<TileClass> path, float range)
+    public bool InRange(List<Tile> path, float range)
     {
         return path.Count <= range;
     }
@@ -372,24 +372,24 @@ public abstract class IEnemy
     public void UpdateRoom()
     {
         bool pleaseExit = false;
-        for (int j = 0; j < tileWorld.rooms.Count; j++)
+        for (int j = 0; j < world.rooms.Count; j++)
         {
             if (pleaseExit)
             {
                 break;
             }
-            for (int x = 0; x < tileWorld.rooms[j].roomSize; x++)
+            for (int x = 0; x < world.rooms[j].roomSize; x++)
             {
                 if (pleaseExit)
                 {
                     break;
                 }
-                for (int y = 0; y < tileWorld.rooms[j].roomSize; y++)
+                for (int y = 0; y < world.rooms[j].roomSize; y++)
                 {
-                    if (new Vector3(RoundOffset(tileWorld.rooms[j].tiles[x, y].position.x), RoundOffset(tileWorld.rooms[j].tiles[x, y].position.y), zAxis) == obj.transform.position)
+                    if (new Vector3(RoundOffset(world.rooms[j].tiles[x, y].position.x), RoundOffset(world.rooms[j].tiles[x, y].position.y), zAxis) == obj.transform.position)
                     {
                         //Debug.Log("room is updated");
-                        tileRoom = tileWorld.rooms[j];
+                        room = world.rooms[j];
                         pleaseExit = true;
                         break;
                     }

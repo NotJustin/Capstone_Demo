@@ -12,8 +12,8 @@ public class Player : MonoBehaviour
     int zAxis = 0;
     public Animator animator;
     public Vector3 lastPosition;
-    GameObject tileWorldObj;
-    public TileWorld tileWorld;
+    GameObject worldObj;
+    public World world;
 
     public int maxMoves = 2;
     public int moves = 2;
@@ -31,18 +31,18 @@ public class Player : MonoBehaviour
     public GameObject turnHandlerObj;
     public Turn_Handler turnHandler;
 
-    public TileRoom tileRoom;
-    public TileRoom prevRoom;
+    public Room room;
+    public Room prevRoom;
 
     public List<Vector3Int> path;
 
     public bool turnStarted = false;
-    void Start()
+    void Awake()
     {
-        tileWorldObj = GameObject.FindGameObjectWithTag("TileWorld");
+        worldObj = GameObject.FindGameObjectWithTag("TileWorld");
         turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
         turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
-        tileWorld = tileWorldObj.GetComponent<TileWorld>();
+        world = worldObj.GetComponent<World>();
         animator = GetComponent<Animator>();
         lastPosition = new Vector3(-1, -1, 0);
     }
@@ -64,38 +64,38 @@ public class Player : MonoBehaviour
     public void UpdateRoom()
     {
         bool pleaseExit = false;
-        for (int j = 0; j < tileWorld.rooms.Count; j++)
+        for (int j = 0; j < world.rooms.Count; j++)
         {
             if (pleaseExit)
             {
                 break;
             }
-            for (int x = 0; x < tileWorld.rooms[j].roomSize; x++)
+            for (int x = 0; x < world.rooms[j].roomSize; x++)
             {
                 if (pleaseExit)
                 {
                     break;
                 }
-                for (int y = 0; y < tileWorld.rooms[j].roomSize; y++)
+                for (int y = 0; y < world.rooms[j].roomSize; y++)
                 {
-                    if (new Vector3(RoundOffset(tileWorld.rooms[j].tiles[x, y].position.x), RoundOffset(tileWorld.rooms[j].tiles[x, y].position.y), zAxis) == transform.position)
+                    if (new Vector3(RoundOffset(world.rooms[j].tiles[x, y].position.x), RoundOffset(world.rooms[j].tiles[x, y].position.y), zAxis) == transform.position)
                     {
                         //Debug.Log("room is updated");
-                        tileRoom = tileWorld.rooms[j];
-                        if (prevRoom != null && prevRoom.number != tileRoom.number)
+                        room = world.rooms[j];
+                        if (prevRoom != null && prevRoom.number != room.number)
                         {
                             prevRoom.playerCount--;
-                            tileRoom.playerCount++;
+                            room.playerCount++;
                             if (prevRoom.playerCount == 0)
                             {
-                                prevRoom.HideRoom();
+                                prevRoom.Hide();
                             }
-                            if (tileRoom.playerCount == 1)
+                            if (room.playerCount == 1)
                             {
-                                tileRoom.ShowRoom();
+                                room.Show();
                             }
                         }
-                        prevRoom = tileRoom;
+                        prevRoom = room;
                         pleaseExit = true;
                         break;
                     }
@@ -127,42 +127,42 @@ public class Player : MonoBehaviour
     public void AddTileToPath(Vector3Int goal)
     {
         start = goal;
-        tileWorld.UnhighlightOldNeighbors();
+        world.UnhighlightOldNeighbors();
         /// Changes the tileflags to none so that we are able to change anything about the tile.
         /// Then, changiing the color to red, adds it to the path list, and adjusts the number of remaining moves appropriately.
-        tileWorld.highlighter.SetTile(goal, tileWorld.floor_tile_asset);
-        tileWorld.world.SetTileFlags(goal, TileFlags.None);
+        world.highlighter.SetTile(goal, world.floor_tile_asset);
+        world.world.SetTileFlags(goal, TileFlags.None);
         Color color = new Color(0.0f, 0.0f, 0.0f, 0.25f);
-        tileWorld.highlighter.SetColor(goal, color);
+        world.highlighter.SetColor(goal, color);
         //spriteRenderer.sprite = green_cursor;
         path.Add(goal);
         --moves;
         ++pendingMoves;
         if (moves > 0)
         {
-            tileWorld.HighlightNeighbors(start);
+            world.HighlightNeighbors(start);
         }
     }
     public void RemoveTileFromPath(Vector3Int coordinate)
     {
         if (path.Count > 0 && coordinate == path[path.Count - 1])
         {
-            tileWorld.UnhighlightOldNeighbors();
-            tileWorld.highlighter.SetTile(coordinate, tileWorld.floor_tile_asset);
-            tileWorld.highlighter.SetColor(coordinate, Color.white);
+            world.UnhighlightOldNeighbors();
+            world.highlighter.SetTile(coordinate, world.floor_tile_asset);
+            world.highlighter.SetColor(coordinate, Color.white);
             path.RemoveAt(path.Count - 1);
             moves++;
             pendingMoves--;
             if (path.Count > 0)
             {
                 start = path[path.Count - 1];
-                tileWorld.HighlightNeighbors(path[path.Count - 1]);
+                world.HighlightNeighbors(path[path.Count - 1]);
             }
             else
             {
-                Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
+                Vector3Int playerCell = world.world.WorldToCell(transform.position);
                 start = playerCell;
-                tileWorld.HighlightNeighbors(playerCell);
+                world.HighlightNeighbors(playerCell);
             }
         }
     }
@@ -171,18 +171,18 @@ public class Player : MonoBehaviour
     {
         if (!moving)
         {
-            tileWorld.UnhighlightOldNeighbors();
+            world.UnhighlightOldNeighbors();
             /*for (int i = 0; i < path.Count; i++)
             {
                 Color color = new Color(0.0f, 0.0f, 0.0f, 0.25f);
-                //tileWorld.highlighter.SetTile(path[i], tileWorld.floor_tile_asset);
-                //tileWorld.highlighter.SetColor(path[i], color);
+                //world.highlighter.SetTile(path[i], world.floor_tile_asset);
+                //world.highlighter.SetColor(path[i], color);
             }*/
             moving = true;
             startTime = Time.time;
             destination = new Vector3(RoundOffset(path[0].x), RoundOffset(path[0].y), zAxis);
             totalDistance = Vector3.Distance(transform.position, destination);
-            tileWorld.highlighter.SetTile(tileWorld.world.WorldToCell(transform.position), tileWorld.empty_tile_asset);
+            world.highlighter.SetTile(world.world.WorldToCell(transform.position), world.empty_tile_asset);
         }
         else
         {
@@ -214,12 +214,12 @@ public class Player : MonoBehaviour
                 {
                     yCoor = (int)(transform.position.y);
                 }
-                TileBase tileBase = tileWorld.world.GetTile(new Vector3Int(xCoor, yCoor, zAxis));
+                TileBase tileBase = world.world.GetTile(new Vector3Int(xCoor, yCoor, zAxis));
                 if (tileBase != null && tileBase.name.Contains("key"))
                 {
-                    tileWorld.OpenDoors(this);
+                    world.OpenDoors(this);
                 }
-                tileWorld.highlighter.SetTile(path[0], tileWorld.empty_tile_asset);
+                world.highlighter.SetTile(path[0], world.empty_tile_asset);
                 path.RemoveAt(0);
                 if (path.Count > 0)
                 {
@@ -232,14 +232,14 @@ public class Player : MonoBehaviour
                     pendingMoves = 0;
                     animator.Play("idle");
                     moving = false;
-                    Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
-                    tileWorld.highlighter.SetTile(playerCell, tileWorld.floor_tile_asset);
-                    tileWorld.highlighter.SetTileFlags(playerCell, TileFlags.None);
-                    tileWorld.highlighter.SetColor(playerCell, Color.magenta);
+                    Vector3Int playerCell = world.world.WorldToCell(transform.position);
+                    world.highlighter.SetTile(playerCell, world.floor_tile_asset);
+                    world.highlighter.SetTileFlags(playerCell, TileFlags.None);
+                    world.highlighter.SetColor(playerCell, Color.magenta);
                     turnHandler.confirm = false;
                     if (moves > 0)
                     {
-                        tileWorld.HighlightNeighbors(playerCell);
+                        world.HighlightNeighbors(playerCell);
                     }
                 }
             }
@@ -248,21 +248,21 @@ public class Player : MonoBehaviour
     public void ClearPath()
     {
         Color color = new Color(0, 0, 0, 0.0f);
-        tileWorld.UnhighlightOldNeighbors();
+        world.UnhighlightOldNeighbors();
         pendingMoves = 0;
-        Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
-        tileWorld.highlighter.SetTile(playerCell, tileWorld.empty_tile_asset);
-        tileWorld.highlighter.SetTileFlags(playerCell, TileFlags.None);
-        tileWorld.highlighter.SetColor(playerCell, Color.white);
+        Vector3Int playerCell = world.world.WorldToCell(transform.position);
+        world.highlighter.SetTile(playerCell, world.empty_tile_asset);
+        world.highlighter.SetTileFlags(playerCell, TileFlags.None);
+        world.highlighter.SetColor(playerCell, Color.white);
         foreach (Vector3Int coordinate in path)
         {
-            tileWorld.highlighter.SetTile(coordinate, tileWorld.empty_tile_asset);
-            tileWorld.highlighter.SetTileFlags(coordinate, TileFlags.None);
-            //tileWorld.highlighter.SetColor(coordinate, color);
+            world.highlighter.SetTile(coordinate, world.empty_tile_asset);
+            world.highlighter.SetTileFlags(coordinate, TileFlags.None);
+            //world.highlighter.SetColor(coordinate, color);
             moves++;
         }
         path.Clear();
-        start = tileWorld.world.WorldToCell(transform.position);
+        start = world.world.WorldToCell(transform.position);
     }
 
     /// Increment/reset things related to this character since their turn is just beginning now.
@@ -274,13 +274,13 @@ public class Player : MonoBehaviour
 
     public void HighlightStartPosition()
     {
-        Vector3Int playerCell = tileWorld.world.WorldToCell(transform.position);
+        Vector3Int playerCell = world.world.WorldToCell(transform.position);
         /// Set the flags to none so that we can change the color to magenta
-        tileWorld.highlighter.SetTileFlags(playerCell, TileFlags.None);
-        tileWorld.highlighter.SetTile(playerCell, tileWorld.floor_tile_asset);
+        world.highlighter.SetTileFlags(playerCell, TileFlags.None);
+        world.highlighter.SetTile(playerCell, world.floor_tile_asset);
         /// Change the tile's color to magenta
-        tileWorld.highlighter.SetColor(playerCell, Color.magenta);
-        tileWorld.HighlightNeighbors(playerCell);
+        world.highlighter.SetColor(playerCell, Color.magenta);
+        world.HighlightNeighbors(playerCell);
     }
 
 }

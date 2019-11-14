@@ -49,15 +49,15 @@ public class guiScript : MonoBehaviour
         GUI.Label(new Rect(5, 240, 200, 20), "Moves pending: " + turnHandler.activePlayer.pendingMoves);
         if (turnHandler.enemyTurn && turnHandler.activeEnemy != null)
         {
-            GUI.Label(new Rect(5, 200, 200, 20), "Enemy room number: " + turnHandler.activeEnemy.tileRoom.number);
+            GUI.Label(new Rect(5, 200, 200, 20), "Enemy room number: " + turnHandler.activeEnemy.room.number);
         }
-        else if (turnHandler.activePlayer.tileRoom == null)
+        else if (turnHandler.activePlayer.room == null)
         {
             GUI.Label(new Rect(5, 200, 200, 20), "Player is in doorway");
         }
         else
         {
-            GUI.Label(new Rect(5, 200, 200, 20), "Player room number: " + turnHandler.activePlayer.tileRoom.number);
+            GUI.Label(new Rect(5, 200, 200, 20), "Player room number: " + turnHandler.activePlayer.room.number);
         }
         if (turnHandler.enemyList.Count > 0 && turnHandler.activeEnemy.awaitMovement)
         {

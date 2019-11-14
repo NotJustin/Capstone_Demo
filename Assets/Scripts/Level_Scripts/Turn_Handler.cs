@@ -24,8 +24,8 @@ public class Turn_Handler : MonoBehaviour
     public bool enemyTurn = false;
     public bool playerTurn = false;
 
-    public GameObject tileWorldObj;
-    TileWorld tileWorld;
+    public GameObject worldObj;
+    World world;
 
     public Player firstPlayer, activePlayer;
     public IEnemy activeEnemy;
@@ -34,7 +34,7 @@ public class Turn_Handler : MonoBehaviour
 
     public void Initialize()
     {
-        tileWorld = tileWorldObj.GetComponent<TileWorld>();
+        world = worldObj.GetComponent<World>();
         playerList = new List<Player>();
         //enemyList = enemies.GetComponent<Enemies>().enemies;
         despawnedEnemies = new List<DespawnedEnemy>();
@@ -42,7 +42,7 @@ public class Turn_Handler : MonoBehaviour
         {
             Player player = child.GetComponent<Player>();
             playerList.Add(player);
-            player.start = tileWorld.world.WorldToCell(player.transform.position);
+            player.start = world.world.WorldToCell(player.transform.position);
         }
         activePlayer = playerList[0];
         firstPlayer = activePlayer;
