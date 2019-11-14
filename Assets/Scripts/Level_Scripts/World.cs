@@ -37,10 +37,14 @@ public class Room
     public List<GameObject> enemies;
     public GameObject turnHandlerObj;
     public Turn_Handler turnHandler;
+    public GameObject enemiesObj;
+    public Enemies enemyData;
     public Room(Tilemap _world, Tilemap _map, int _number, int _x, int _y)
     {
         turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
         turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
+        enemiesObj = GameObject.FindGameObjectWithTag("Enemies");
+        enemyData = enemiesObj.GetComponent<Enemies>();
         world = _world;
         map = _map;
         number = _number;
@@ -62,10 +66,26 @@ public class Room
         {
             for (int y = 0; y < tiles.GetLength(1); y++)
             {
-                if (tiles[x, y].type == enemyOne)
+                /*if (tiles[x, y].type == enemyOne)
                 {
-                    Instantiate()
+                    GameObject enemy = GameObject.Instantiate(enemyData.tierOneEnemies[Random.Range(0, enemyData.tierOneEnemies.Count)]);
+                    enemy.transform.position = tiles[x, y].position;
+                }*/
+                /*else */if (tiles[x, y].type == enemyTwo)
+                {
+                    GameObject enemy = GameObject.Instantiate(enemyData.tierTwoEnemies[Random.Range(0, enemyData.tierTwoEnemies.Count)]);
+                    enemy.transform.position = tiles[x, y].position;
                 }
+                /*else if (tiles[x, y].type == enemyThree)
+                {
+                    GameObject enemy = GameObject.Instantiate(enemyData.tierThreeEnemies[Random.Range(0, enemyData.tierThreeEnemies.Count)]);
+                    enemy.transform.position = tiles[x, y].position;
+                }
+                else if (tiles[x, y].type == enemyFour)
+                {
+                    GameObject enemy = GameObject.Instantiate(enemyData.tierFourEnemies[Random.Range(0, enemyData.tierFourEnemies.Count)]);
+                    enemy.transform.position = tiles[x, y].position;
+                }*/
             }
         }
     }
