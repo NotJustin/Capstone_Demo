@@ -64,7 +64,7 @@ public class Room
             {
                 if (tiles[x, y].type == enemyOne)
                 {
-                    Instantiate()
+                    Instantiate();
                 }
             }
         }
