@@ -186,7 +186,7 @@ public class Player : MonoBehaviour
         }
         else
         {
-            animator.Play("walking");
+            animator.Play("walk");
             float distanceCovered, fractionOfJourney;
             if (transform.position != destination)
             {
