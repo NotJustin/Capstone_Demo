@@ -10,12 +10,6 @@ public class Turn_Handler : MonoBehaviour
 
     public Enemies enemyScript;
 
-    /*public struct DespawnedEnemy
-    {
-        string name;
-        int health;
-    }*/
-
     public List<Player> playerList;
     public List<GameObject> enemyList;
     public List<DespawnedEnemy> despawnedEnemies;
@@ -36,7 +30,6 @@ public class Turn_Handler : MonoBehaviour
     {
         world = worldObj.GetComponent<World>();
         playerList = new List<Player>();
-        //enemyList = enemies.GetComponent<Enemies>().enemies;
         despawnedEnemies = new List<DespawnedEnemy>();
         foreach (Transform child in players.transform)
         {
@@ -70,6 +63,7 @@ public class Turn_Handler : MonoBehaviour
             if (enemyList.Count > 0)
             {
                 activeEnemy = FetchEnemyType(enemyList[0]);
+                Debug.Log(activeEnemy);
             }
             else
             {

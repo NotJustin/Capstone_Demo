@@ -39,6 +39,7 @@ public abstract class IEnemy
     public float playerSpeed;
     int zAxis = 0;
 
+    public Animator animator;
     public IEnemy(GameObject _obj)
     {
         health = 0;
@@ -47,7 +48,7 @@ public abstract class IEnemy
         attacked = false;
         awaitMovement = false;
         turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
-        worldObj = GameObject.FindGameObjectWithTag("World");
+        worldObj = GameObject.FindGameObjectWithTag("TileWorld");
         world = worldObj.GetComponent<World>();
     }
 
@@ -81,10 +82,11 @@ public abstract class IEnemy
             currentPath.Clear();
             Vector3Int start = world.world.WorldToCell(obj.transform.position);
             Vector3Int goal = world.world.WorldToCell(player.transform.position);
-            start = new Vector3Int(start.x + room.startX - 1, start.y + room.startY - 1, start.z);
-            goal = new Vector3Int(goal.x + room.startX - 1, goal.y + room.startY - 1, goal.z);
+            start = new Vector3Int(start.x - room.startX - 1, start.y - room.startY - 1, start.z);
+            goal = new Vector3Int(goal.x - room.startX - 1, goal.y - room.startY - 1, goal.z);
             if (room.tiles[start.x, start.y].room == room.tiles[goal.x, goal.y].room)
             {
+                Debug.Log("same room");
                 if (BuildPathAStar(room.tiles[start.x, start.y], room.tiles[goal.x, goal.y]))
                 {
                     Tile temp = room.tiles[goal.x, goal.y];
@@ -101,6 +103,7 @@ public abstract class IEnemy
                 }
                 else
                 {
+                    Debug.Log("different room");
                     continue;
                 }
                 if (closestPath == null)
@@ -388,7 +391,6 @@ public abstract class IEnemy
                 {
                     if (new Vector3(RoundOffset(world.rooms[j].tiles[x, y].position.x), RoundOffset(world.rooms[j].tiles[x, y].position.y), zAxis) == obj.transform.position)
                     {
-                        //Debug.Log("room is updated");
                         room = world.rooms[j];
                         pleaseExit = true;
                         break;

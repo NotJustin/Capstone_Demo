@@ -59,13 +59,13 @@ public class guiScript : MonoBehaviour
         {
             GUI.Label(new Rect(5, 200, 200, 20), "Player room number: " + turnHandler.activePlayer.room.number);
         }
-        if (turnHandler.enemyList.Count > 0 && turnHandler.activeEnemy.awaitMovement)
+        /*if (turnHandler.enemyList.Count > 0 && turnHandler.activeEnemy.awaitMovement)
         {
             GUI.Label(new Rect(5, 180, 200, 20), "Selected: " + turnHandler.activeEnemy.obj.transform.name);
         }
         else
         {
             GUI.Label(new Rect(5, 180, 200, 20), "Selected: " + turnHandler.activePlayer.transform.name);
-        }
+        }*/
     }
 }

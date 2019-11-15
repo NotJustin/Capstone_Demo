@@ -54,6 +54,7 @@ public class Room
         x = _x;
         y = _y;
         GenerateTileList(map, x, y);
+        Show();
         SpawnEnemies();
         playerCount = 0;
         enemies = new List<GameObject>();
@@ -74,7 +75,10 @@ public class Room
                 /*else */if (tiles[x, y].type == enemyTwo)
                 {
                     GameObject enemy = GameObject.Instantiate(enemyData.tierTwoEnemies[Random.Range(0, enemyData.tierTwoEnemies.Count)]);
-                    enemy.transform.position = tiles[x, y].position;
+                    enemy.transform.position = new Vector3(enemyData.RoundOffset(tiles[x, y].position.x), enemyData.RoundOffset(tiles[x, y].position.y), tiles[x, y].position.z);
+                    turnHandler.enemyList.Add(enemy);
+                    enemy.transform.parent = enemiesObj.transform;
+                    //turnHandler.FetchEnemyType(enemy).UpdateRoom();
                 }
                 /*else if (tiles[x, y].type == enemyThree)
                 {
@@ -418,7 +422,6 @@ public class World : MonoBehaviour
         roomCount++;
         Room newRoom = new Room(world, room.GetComponent<Tilemap>(), roomCount, x, y);
         GenerateWalls(newRoom);
-        newRoom.Show();
         rooms.Add(newRoom);
         return newRoom;
     }
