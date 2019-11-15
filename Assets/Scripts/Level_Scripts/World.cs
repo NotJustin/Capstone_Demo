@@ -69,6 +69,9 @@ public class Room
             {
                 /*if (tiles[x, y].type == enemyOne)
                 {
+<<<<<<< HEAD
+                    Instantiate();
+=======
                     GameObject enemy = GameObject.Instantiate(enemyData.tierOneEnemies[Random.Range(0, enemyData.tierOneEnemies.Count)]);
                     enemy.transform.position = tiles[x, y].position;
                 }*/
@@ -84,6 +87,7 @@ public class Room
                 {
                     GameObject enemy = GameObject.Instantiate(enemyData.tierThreeEnemies[Random.Range(0, enemyData.tierThreeEnemies.Count)]);
                     enemy.transform.position = tiles[x, y].position;
+>>>>>>> e1757c3a37e0908e3435c03af721f669998a5b4c
                 }
                 else if (tiles[x, y].type == enemyFour)
                 {
