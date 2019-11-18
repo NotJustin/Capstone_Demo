@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Card : MonoBehaviour
+public class card : MonoBehaviour
 {
     string attackType;
     int cost;
