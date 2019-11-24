@@ -82,11 +82,10 @@ public abstract class IEnemy
             currentPath.Clear();
             Vector3Int start = world.world.WorldToCell(obj.transform.position);
             Vector3Int goal = world.world.WorldToCell(player.transform.position);
-            start = new Vector3Int(start.x - room.startX - 1, start.y - room.startY - 1, start.z);
-            goal = new Vector3Int(goal.x - room.startX - 1, goal.y - room.startY - 1, goal.z);
+            start = new Vector3Int(start.x - room.startX, start.y - room.startY, start.z);
+            goal = new Vector3Int(goal.x - room.startX, goal.y - room.startY, goal.z);
             if (room.tiles[start.x, start.y].room == room.tiles[goal.x, goal.y].room)
             {
-                Debug.Log("same room");
                 if (BuildPathAStar(room.tiles[start.x, start.y], room.tiles[goal.x, goal.y]))
                 {
                     Tile temp = room.tiles[goal.x, goal.y];
@@ -103,7 +102,6 @@ public abstract class IEnemy
                 }
                 else
                 {
-                    Debug.Log("different room");
                     continue;
                 }
                 if (closestPath == null)
@@ -185,33 +183,37 @@ public abstract class IEnemy
     void PopulateAdjacentArray(List<Tile> adjacent, Tile tile, Room tRoom)
     {
         Tile neighbor;
-        if (tile.cell.x > 1 && tile.cell.y > 0)
+        if (tile.cell.x > 0 && tile.cell.y > 0)
         {
-            neighbor = tRoom.tiles[tile.cell.x - 2, tile.cell.y - 1];
-            if (!neighbor.tileBase.name.Contains("wall"))
-            {
-                adjacent.Add(neighbor);
-            }
-        }
-        if (tile.cell.x < tRoom.startX + 7 && tile.cell.y > 0)
-        {
-            neighbor = tRoom.tiles[tile.cell.x, tile.cell.y - 1];
-            if (!neighbor.tileBase.name.Contains("wall"))
-            {
-                adjacent.Add(neighbor);
-            }
-        }
-        if (tile.cell.x > 0 && tile.cell.y < tRoom.startY + 7)
-        {
+            Debug.Log("checking left");
             neighbor = tRoom.tiles[tile.cell.x - 1, tile.cell.y];
             if (!neighbor.tileBase.name.Contains("wall"))
             {
                 adjacent.Add(neighbor);
             }
         }
-        if (tile.cell.x > 0 && tile.cell.y > 1)
+        if (tile.cell.x < tRoom.startX + 6 && tile.cell.y > 0)
         {
-            neighbor = tRoom.tiles[tile.cell.x - 1, tile.cell.y - 2];
+            Debug.Log("checking right");
+            neighbor = tRoom.tiles[tile.cell.x + 1, tile.cell.y];
+            if (!neighbor.tileBase.name.Contains("wall"))
+            {
+                adjacent.Add(neighbor);
+            }
+        }
+        if (tile.cell.x > 0 && tile.cell.y < tRoom.startY + 6)
+        {
+            Debug.Log("checking up");
+            neighbor = tRoom.tiles[tile.cell.x, tile.cell.y + 1];
+            if (!neighbor.tileBase.name.Contains("wall"))
+            {
+                adjacent.Add(neighbor);
+            }
+        }
+        if (tile.cell.x > 0 && tile.cell.y > 0)
+        {
+            Debug.Log("checking down");
+            neighbor = tRoom.tiles[tile.cell.x, tile.cell.y - 1];
             if (!neighbor.tileBase.name.Contains("wall"))
             {
                 adjacent.Add(neighbor);
@@ -266,6 +268,12 @@ public abstract class IEnemy
             }
             adjacent.Clear();
         }
+        /*Debug.Log("Open: " + open.Count);
+        Debug.Log("Closed: " + closed.Count);
+        for (int i = 0; i < closed.Count; i++)
+        {
+            Debug.Log(closed[i].cell);
+        }*/
         if (foundGoal)
         {
             return true;

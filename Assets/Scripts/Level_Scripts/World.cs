@@ -39,13 +39,16 @@ public class Room
     public Turn_Handler turnHandler;
     public GameObject enemiesObj;
     public Enemies enemyData;
-    public Room(Tilemap _world, Tilemap _map, int _number, int _x, int _y)
+    public World worldClass;
+    public bool opened;
+    public Room(World _worldClass, Tilemap _world, Tilemap _map, int _number, int _x, int _y)
     {
         turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
         turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
         enemiesObj = GameObject.FindGameObjectWithTag("Enemies");
         enemyData = enemiesObj.GetComponent<Enemies>();
         world = _world;
+        worldClass = _worldClass;
         map = _map;
         number = _number;
         tiles = new Tile[roomSize, roomSize];
@@ -55,9 +58,10 @@ public class Room
         y = _y;
         GenerateTileList(map, x, y);
         Show();
+        enemies = new List<GameObject>();
         SpawnEnemies();
         playerCount = 0;
-        enemies = new List<GameObject>();
+        opened = false;
     }
 
     void SpawnEnemies()
@@ -75,11 +79,14 @@ public class Room
                     GameObject enemy = GameObject.Instantiate(enemyData.tierOneEnemies[Random.Range(0, enemyData.tierOneEnemies.Count)]);
                     enemy.transform.position = tiles[x, y].position;
                 }*/
-                /*else */if (tiles[x, y].type == enemyTwo)
+                /*else */if (tiles[x, y].type == enemyTwo || tiles[x, y].type == enemyThree)
                 {
+                    Debug.Log("attempting to spawn enemy");
                     GameObject enemy = GameObject.Instantiate(enemyData.tierTwoEnemies[Random.Range(0, enemyData.tierTwoEnemies.Count)]);
+                    Debug.Log("enemy: " + enemy);
                     enemy.transform.position = new Vector3(enemyData.RoundOffset(tiles[x, y].position.x), enemyData.RoundOffset(tiles[x, y].position.y), tiles[x, y].position.z);
                     turnHandler.enemyList.Add(enemy);
+                    enemies.Add(enemy);
                     enemy.transform.parent = enemiesObj.transform;
                     //turnHandler.FetchEnemyType(enemy).UpdateRoom();
                 }
@@ -101,8 +108,8 @@ public class Room
     {
         Tile tile = new Tile();
         tile.room = number;
-        tile.cell = new Vector3Int(x + startX + 1, y + startY + 1, 0);
-        tile.tileBase = map.GetTile(new Vector3Int(x + 1, y + 1, 0));
+        tile.cell = new Vector3Int(x + startX, y + startY, 0);
+        tile.tileBase = map.GetTile(new Vector3Int(map.origin.x + x, map.origin.y + y, map.origin.z));
         return tile;
     }
     public void GenerateTileList(Tilemap _map, int _startX, int _startY)
@@ -187,6 +194,22 @@ public class Room
             tile.position = new Vector3(tile.cell.x, tile.cell.y, 0);
         }
     }
+
+    public void OpenDoors()
+    {
+        for (int x = startX - 1; x < startX + roomSize + 1; x++)
+        {
+            for (int y = startY - 1; y < startY + roomSize + 1; y++)
+            {
+                Vector3Int position = new Vector3Int(x, y, 0);
+                TileBase tileBase = world.GetTile(position);
+                if (tileBase != null && tileBase.name.Contains("door"))
+                {
+                    world.SetTile(position, worldClass.floor_tile_asset);
+                }
+            }
+        }
+    }
 }
 
 public class World : MonoBehaviour
@@ -250,30 +273,30 @@ public class World : MonoBehaviour
 
         Debug.Log("initial door count: " + doorCountStart);
 
-        if (world.GetTile(new Vector3Int(room.startX, room.startY + 1, zAxis)) == null)
+        if (world.GetTile(new Vector3Int(room.startX - 1, room.startY, zAxis)) == null)
         {
-            doorCount = GenerateLeftWall(room, room.startX, room.startY, wallsLeft, doorCount);
+            doorCount = GenerateLeftWall(room, room.startX - 1, room.startY - 1, wallsLeft, doorCount);
         }
         wallsLeft--;
-        if (world.GetTile(new Vector3Int(room.startX + 1, room.startY + 8, zAxis)) == null)
+        if (world.GetTile(new Vector3Int(room.startX, room.startY + 7, zAxis)) == null)
         {
-            doorCount = GenerateUpWall(room, room.startX, room.startY + 8, wallsLeft, doorCount);
+            doorCount = GenerateUpWall(room, room.startX - 1, room.startY + 7, wallsLeft, doorCount);
         }
         wallsLeft--;
-        if (world.GetTile(new Vector3Int(room.startX + 8, room.startY + 1, zAxis)) == null)
+        if (world.GetTile(new Vector3Int(room.startX + 7, room.startY, zAxis)) == null)
         {
-            doorCount = GenerateRightWall(room, room.startX + 8, room.startY + 8, wallsLeft, doorCount);
+            doorCount = GenerateRightWall(room, room.startX + 7, room.startY + 7, wallsLeft, doorCount);
         }
         wallsLeft--;
-        if (world.GetTile(new Vector3Int(room.startX + 1, room.startY, zAxis)) == null)
+        if (world.GetTile(new Vector3Int(room.startX, room.startY - 1, zAxis)) == null)
         {
-            int test = doorCountStart > doorCount ? GenerateDownWall(room, room.startX + 8, room.startY, wallsLeft, doorCount) : GenerateDownWall(room, room.startX + 8, room.startY, wallsLeft, doorCount + 1);
+            int test = doorCountStart > doorCount ? GenerateDownWall(room, room.startX + 7, room.startY - 1, wallsLeft, doorCount) : GenerateDownWall(room, room.startX + 7, room.startY - 1, wallsLeft, doorCount + 1);
         }
     }
 
     public bool HasGenerator(Room room)
     {
-        for (int x = 0; x < room.roomSize; x++)
+        /*for (int x = 0; x < room.roomSize; x++)
         {
             for (int y = 0; y < room.roomSize; y++)
             {
@@ -282,17 +305,17 @@ public class World : MonoBehaviour
                     return true;
                 }
             }
-        }
-        return false;
+        }*/
+        return true;
     }
 
     public int GenerateLeftWall(Room room, int x, int y, int wallsLeft, int doorCount)
     {
         Vector3Int cell;
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
-        int chanceTile = Random.Range(room.startY + 1, room.startY + 8);
+        int chanceTile = Random.Range(room.startY, room.startY + 6);
         bool createdDoor = false;
-        while (y < room.startY + 9)
+        while (y < room.startY + 8)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell) == null)
@@ -324,9 +347,9 @@ public class World : MonoBehaviour
     {
         Vector3Int cell;
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
-        int chanceTile = Random.Range(room.startX + 1, room.startX + 8);
+        int chanceTile = Random.Range(room.startX, room.startX + 6);
         bool createdDoor = false;
-        while (x < room.startX + 9)
+        while (x < room.startX + 8)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell) == null)
@@ -358,7 +381,7 @@ public class World : MonoBehaviour
     {
         Vector3Int cell;
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
-        int chanceTile = Random.Range(room.startY + 1, room.startY + 8);
+        int chanceTile = Random.Range(room.startY, room.startY + 6);
         bool createdDoor = false;
         while (y > room.startY - 1)
         {
@@ -392,7 +415,7 @@ public class World : MonoBehaviour
     {
         Vector3Int cell;
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
-        int chanceTile = Random.Range(room.startX + 1, room.startX + 8);
+        int chanceTile = Random.Range(room.startX, room.startX + 6);
         bool createdDoor = false;
         while (x > room.startX - 1)
         {
@@ -424,9 +447,10 @@ public class World : MonoBehaviour
     public Room AddRoom(GameObject room, int x, int y)
     {
         roomCount++;
-        Room newRoom = new Room(world, room.GetComponent<Tilemap>(), roomCount, x, y);
-        GenerateWalls(newRoom);
+        room.GetComponent<Tilemap>().CompressBounds();
+        Room newRoom = new Room(this, world, room.GetComponent<Tilemap>(), roomCount, x, y);
         rooms.Add(newRoom);
+        GenerateWalls(newRoom);
         return newRoom;
     }
 
@@ -458,7 +482,7 @@ public class World : MonoBehaviour
             {
                 if (spawnAmount < spawns.GetLength(0) && firstRoom.tiles[x, y].type == spawn)
                 {
-                    spawns[spawnAmount] = new Vector3Int(x + 1, y + 1, zAxis);
+                    spawns[spawnAmount] = new Vector3Int(x, y, zAxis);
                     spawnAmount++;
                 }
             }
@@ -494,7 +518,8 @@ public class World : MonoBehaviour
     bool addingRoom = false;
 
     Vector3 activePlayerPos;
-
+    float leftWall, upWall, rightWall, downWall;
+    Vector3Int leftRoom, upRoom, rightRoom, downRoom;
     void Update()
     {
         //Debug.Log(world);
@@ -503,10 +528,14 @@ public class World : MonoBehaviour
              SceneManager.LoadScene("End_Scene", LoadSceneMode.Single);
          }*/
         activePlayerPos = new Vector3(Mathf.Round(turnHandler.activePlayer.transform.position.x * 10) / 10, Mathf.Round(turnHandler.activePlayer.transform.position.y * 10) / 10, zAxis);
-        if (turnHandler.activePlayer.room != null && !(activePlayerPos.x == RoundOffset(turnHandler.activePlayer.room.startX) ||
-            activePlayerPos.x == RoundOffset(turnHandler.activePlayer.room.startX + 8) ||
-            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.room.startY) ||
-            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.room.startY + 8)))
+        //Debug.Log(turnHandler.activePlayer.transform.position);
+        leftWall = RoundOffset(turnHandler.activePlayer.prevRoom.startX - 1);
+        rightWall = RoundOffset(turnHandler.activePlayer.prevRoom.startX + 7);
+        downWall = RoundOffset(turnHandler.activePlayer.prevRoom.startY - 1);
+        upWall = RoundOffset(turnHandler.activePlayer.prevRoom.startY + 7);
+            //Debug.Log(activePlayerPos.x);
+            //Debug.Log(leftWall + ", " + rightWall + ", " + downWall + ", " + upWall);
+        if (turnHandler.activePlayer.room != null && !(activePlayerPos.x == leftWall || activePlayerPos.x == rightWall || activePlayerPos.y == downWall || activePlayerPos.y == upWall))
         {
             addingRoom = false;
         }
@@ -514,9 +543,14 @@ public class World : MonoBehaviour
         {
             turnHandler.activePlayer.room = null;
         }
-        if (!addingRoom && 
-            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX - 5, turnHandler.activePlayer.prevRoom.startY + 1, zAxis))) == null && 
-            activePlayerPos.x == RoundOffset(turnHandler.activePlayer.prevRoom.startX))
+        if (!addingRoom)
+        {
+            leftRoom = world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX - 5, turnHandler.activePlayer.prevRoom.startY, zAxis));
+            rightRoom = world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX + 10, turnHandler.activePlayer.prevRoom.startY, zAxis));
+            downRoom = world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX, turnHandler.activePlayer.prevRoom.startY - 5, zAxis));
+            upRoom = world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX, turnHandler.activePlayer.prevRoom.startY + 10, zAxis));
+        }
+        if (!addingRoom && world.GetTile(leftRoom) == null && activePlayerPos.x == RoundOffset(turnHandler.activePlayer.prevRoom.startX - 1))
         {
             addingRoom = true;
             if (Random.Range(0, 2) > 0)
@@ -528,9 +562,7 @@ public class World : MonoBehaviour
                 AddRoom(room_1, (turnHandler.activePlayer.prevRoom.startX - 8), turnHandler.activePlayer.prevRoom.startY);
             }
         }
-        else if(!addingRoom &&
-            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX + 10, turnHandler.activePlayer.prevRoom.startY + 1, zAxis))) == null &&
-            activePlayerPos.x == RoundOffset(turnHandler.activePlayer.prevRoom.startX + 8))
+        else if(!addingRoom &&world.GetTile(rightRoom) == null &&activePlayerPos.x == RoundOffset(turnHandler.activePlayer.prevRoom.startX + 7))
         {
             addingRoom = true;
             if (Random.Range(0, 2) > 0)
@@ -542,9 +574,7 @@ public class World : MonoBehaviour
                 AddRoom(room_1, (turnHandler.activePlayer.prevRoom.startX + 8), turnHandler.activePlayer.prevRoom.startY);
             }
         }
-        else if (!addingRoom &&
-            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX + 1, turnHandler.activePlayer.prevRoom.startY - 5, zAxis))) == null &&
-            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.prevRoom.startY))
+        else if (!addingRoom && world.GetTile(downRoom) == null && activePlayerPos.y == RoundOffset(turnHandler.activePlayer.prevRoom.startY - 1))
         {
             addingRoom = true;
             if (Random.Range(0, 2) > 0)
@@ -556,9 +586,7 @@ public class World : MonoBehaviour
                 AddRoom(room_1, (turnHandler.activePlayer.prevRoom.startX), turnHandler.activePlayer.prevRoom.startY - 8);
             }
         }
-        else if (!addingRoom &&
-            world.GetTile(world.WorldToCell(new Vector3(turnHandler.activePlayer.prevRoom.startX + 1, turnHandler.activePlayer.prevRoom.startY + 10, zAxis))) == null &&
-            activePlayerPos.y == RoundOffset(turnHandler.activePlayer.prevRoom.startY + 8))
+        else if (!addingRoom && world.GetTile(upRoom) == null && activePlayerPos.y == RoundOffset(turnHandler.activePlayer.prevRoom.startY + 7))
         {
             addingRoom = true;
             if (Random.Range(0, 2) > 0)
@@ -711,9 +739,9 @@ public class World : MonoBehaviour
         }
     }
 
-    public void OpenDoors(Player player)
+    /*public void OpenDoors()
     {
-        Vector3 start = player.transform.position;
+        /*Vector3 start = player.transform.position;
         int room = player.room.number;
         int roomIndex = -1;
         int x = -1, y = -1;
@@ -797,8 +825,8 @@ public class World : MonoBehaviour
             }
             wires.Clear();
             doors.Clear();
-        }*/
-    }
+        }
+    }*/
 
     /*public void DoorSearch(Vector3Int start, Vector3Int prev)
     {

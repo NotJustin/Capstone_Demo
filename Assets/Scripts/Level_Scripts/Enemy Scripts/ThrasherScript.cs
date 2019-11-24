@@ -51,6 +51,7 @@ public class ThrasherScript : MonoBehaviour
 {
     public Thrasher thrasher;
     Turn_Handler turnHandler;
+    bool cameraUpdated = false;
     void Awake()
     {
         thrasher = new Thrasher(this.transform.gameObject);
@@ -61,6 +62,16 @@ public class ThrasherScript : MonoBehaviour
         if (turnHandler.enemyTurn && turnHandler.activeEnemy == thrasher)
         {
             turnHandler.transform.position = new Vector3(transform.position.x, transform.position.y, -10);
+
+            Debug.Log("test");
+            cameraUpdated = true;
+        }
+        else
+        {
+            cameraUpdated = false;
+        }
+        if (cameraUpdated && turnHandler.enemyTurn && turnHandler.activeEnemy == thrasher)
+        {
             thrasher.UpdateRoom();
             thrasher.PrimaryAttack();
         }

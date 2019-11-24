@@ -59,6 +59,11 @@ public class Player : MonoBehaviour
                 MovePlayer();
             }
         }
+        if (room != null && !room.opened && room.enemies.Count == 0)
+        {
+            room.OpenDoors();
+            room.opened = true;
+        }
     }
 
     public void UpdateRoom()
@@ -213,11 +218,6 @@ public class Player : MonoBehaviour
                 else
                 {
                     yCoor = (int)(transform.position.y);
-                }
-                TileBase tileBase = world.world.GetTile(new Vector3Int(xCoor, yCoor, zAxis));
-                if (tileBase != null && tileBase.name.Contains("key"))
-                {
-                    world.OpenDoors(this);
                 }
                 world.highlighter.SetTile(path[0], world.empty_tile_asset);
                 path.RemoveAt(0);
