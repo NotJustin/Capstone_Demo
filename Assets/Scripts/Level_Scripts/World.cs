@@ -358,15 +358,15 @@ public class World : MonoBehaviour
         {
             Debug.Log("error, all four quadrants null");
         }
-        else if (world.GetTile(two) == null && world.GetTile(four) == null && world.GetTile(three) == null)
+        else if (world.GetTile(two) == null && world.GetTile(three) == null && world.GetTile(four) == null)
         {
             world.SetTile(cell, wall_one_corners_one_tile_asset);
         }
-        else if (world.GetTile(one) == null && world.GetTile(four) == null && world.GetTile(three) == null)
+        else if (world.GetTile(one) == null && world.GetTile(three) == null && world.GetTile(four) == null)
         {
             world.SetTile(cell, wall_one_corners_two_tile_asset);
         }
-        else if (world.GetTile(one) == null && world.GetTile(four) == null && world.GetTile(two) == null)
+        else if (world.GetTile(one) == null && world.GetTile(two) == null && world.GetTile(four) == null)
         {
             world.SetTile(cell, wall_one_corners_three_tile_asset);
         }
@@ -398,9 +398,9 @@ public class World : MonoBehaviour
         {
             world.SetTile(cell, wall_three_corners_four_tile_asset);
         }
-        else if (world.GetTile(one) == null)
+        else if (world.GetTile(three) == null)
         {
-            world.SetTile(cell, wall_three_corners_three_tile_asset);
+            world.SetTile(cell, wall_three_corners_one_tile_asset);
         }
         else if (world.GetTile(four) == null)
         {
@@ -451,7 +451,7 @@ public class World : MonoBehaviour
                     {
                         Debug.Log("coloring top left corner");
                         Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
-                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
                         Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
                         Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
                         GenerateCorner(cell, one, two, three, four);
@@ -536,7 +536,7 @@ public class World : MonoBehaviour
                 {
                     Debug.Log("coloring top left corner");
                     Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
-                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
                     Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
                     Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
                     GenerateCorner(cell, one, two, three, four);
@@ -615,7 +615,7 @@ public class World : MonoBehaviour
                 {
                     Debug.Log("coloring top left corner");
                     Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
-                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
                     Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
                     Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
                     GenerateCorner(cell, one, two, three, four);
@@ -676,7 +676,7 @@ public class World : MonoBehaviour
     public void RegenerateRightWall(Room room, int x, int y)
     {
         Vector3Int cell;
-        while (y > room.startY - 1)
+        while (y > room.startY - 2)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell).name.Contains("wall"))
@@ -694,7 +694,7 @@ public class World : MonoBehaviour
                 {
                     Debug.Log("coloring top left corner");
                     Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
-                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
                     Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
                     Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
                     GenerateCorner(cell, one, two, three, four);
@@ -755,7 +755,7 @@ public class World : MonoBehaviour
     public void RegenerateDownWall(Room room, int x, int y)
     {
         Vector3Int cell;
-        while (x > room.startX - 1)
+        while (x > room.startX - 2)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell).name.Contains("wall"))
@@ -773,7 +773,7 @@ public class World : MonoBehaviour
                 {
                     Debug.Log("coloring top left corner");
                     Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
-                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
                     Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
                     Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
                     GenerateCorner(cell, one, two, three, four);
@@ -870,7 +870,7 @@ public class World : MonoBehaviour
                     {
                         Debug.Log("coloring top left corner");
                         Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
-                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
                         Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
                         Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
                         GenerateCorner(cell, one, two, three, four);
@@ -936,7 +936,7 @@ public class World : MonoBehaviour
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
         int chanceTile = Random.Range(room.startY, room.startY + 6);
         bool createdDoor = false;
-        while (y > room.startY - 1)
+        while (y > room.startY - 2)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell) == null)
@@ -969,7 +969,7 @@ public class World : MonoBehaviour
                     {
                         Debug.Log("coloring top left corner");
                         Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
-                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
                         Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
                         Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
                         GenerateCorner(cell, one, two, three, four);
@@ -1035,7 +1035,7 @@ public class World : MonoBehaviour
         int doorChance = Random.Range(doorCount, wallsLeft + 1);
         int chanceTile = Random.Range(room.startX, room.startX + 6);
         bool createdDoor = false;
-        while (x > room.startX - 1)
+        while (x > room.startX - 2)
         {
             cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
             if (world.GetTile(cell) == null)
@@ -1067,7 +1067,7 @@ public class World : MonoBehaviour
                     {
                         Debug.Log("coloring top left corner");
                         Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
-                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
                         Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
                         Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
                         GenerateCorner(cell, one, two, three, four);
