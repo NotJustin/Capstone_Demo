@@ -59,7 +59,7 @@ public class Room
         GenerateTileList(map, x, y);
         Show();
         enemies = new List<GameObject>();
-        SpawnEnemies();
+        //SpawnEnemies();
         playerCount = 0;
         opened = false;
     }
@@ -234,7 +234,34 @@ public class World : MonoBehaviour
     public GameObject room_6;
     public new GameObject camera;
     public TileBase floor_tile_asset;
-    public TileBase wall_tile_asset;
+    public TileBase wall_left_outer_tile_asset;
+    public TileBase wall_up_outer_tile_asset;
+    public TileBase wall_right_outer_tile_asset;
+    public TileBase wall_down_outer_tile_asset;
+    public TileBase wall_double_vertical_tile_asset;
+    public TileBase wall_double_horizontal_tile_asset;
+    public TileBase wall_triple_left_tile_asset;
+    public TileBase wall_triple_up_tile_asset;
+    public TileBase wall_triple_right_tile_asset;
+    public TileBase wall_triple_down_tile_asset;
+    public TileBase wall_blank_tile_asset;
+    public TileBase wall_four_corners_tile_asset;
+    public TileBase wall_one_corners_one_tile_asset;
+    public TileBase wall_one_corners_two_tile_asset;
+    public TileBase wall_one_corners_three_tile_asset;
+    public TileBase wall_one_corners_four_tile_asset;
+    public TileBase wall_two_corners_left_tile_asset;
+    public TileBase wall_two_corners_up_tile_asset;
+    public TileBase wall_two_corners_right_tile_asset;
+    public TileBase wall_two_corners_down_tile_asset;
+    public TileBase wall_three_corners_two_tile_asset;
+    public TileBase wall_three_corners_one_tile_asset;
+    public TileBase wall_three_corners_four_tile_asset;
+    public TileBase wall_three_corners_three_tile_asset;
+    public TileBase wall_single_left_tile_asset;
+    public TileBase wall_single_up_tile_asset;
+    public TileBase wall_single_right_tile_asset;
+    public TileBase wall_single_down_tile_asset;
     public TileBase door_tile_asset;
     public TileBase empty_tile_asset;
 
@@ -277,20 +304,36 @@ public class World : MonoBehaviour
         {
             doorCount = GenerateLeftWall(room, room.startX - 1, room.startY - 1, wallsLeft, doorCount);
         }
+        else
+        {
+            RegenerateLeftWall(room, room.startX - 1, room.startY - 1);
+        }
         wallsLeft--;
         if (world.GetTile(new Vector3Int(room.startX, room.startY + 7, zAxis)) == null)
         {
             doorCount = GenerateUpWall(room, room.startX - 1, room.startY + 7, wallsLeft, doorCount);
+        }
+        else
+        {
+            RegenerateUpWall(room, room.startX - 1, room.startY + 7);
         }
         wallsLeft--;
         if (world.GetTile(new Vector3Int(room.startX + 7, room.startY, zAxis)) == null)
         {
             doorCount = GenerateRightWall(room, room.startX + 7, room.startY + 7, wallsLeft, doorCount);
         }
+        else
+        {
+            RegenerateRightWall(room, room.startX + 7, room.startY + 7);
+        }
         wallsLeft--;
         if (world.GetTile(new Vector3Int(room.startX, room.startY - 1, zAxis)) == null)
         {
             int test = doorCountStart > doorCount ? GenerateDownWall(room, room.startX + 7, room.startY - 1, wallsLeft, doorCount) : GenerateDownWall(room, room.startX + 7, room.startY - 1, wallsLeft, doorCount + 1);
+        }
+        else
+        {
+            RegenerateDownWall(room, room.startX + 7, room.startY - 1);
         }
     }
 
@@ -307,6 +350,66 @@ public class World : MonoBehaviour
             }
         }*/
         return true;
+    }
+
+    public  void GenerateCorner(Vector3Int cell, Vector3Int one, Vector3Int two, Vector3Int three, Vector3Int four)
+    {
+        if (world.GetTile(two) == null && world.GetTile(one) == null && world.GetTile(four) == null && world.GetTile(three) == null)
+        {
+            Debug.Log("error, all four quadrants null");
+        }
+        else if (world.GetTile(two) == null && world.GetTile(four) == null && world.GetTile(three) == null)
+        {
+            world.SetTile(cell, wall_one_corners_one_tile_asset);
+        }
+        else if (world.GetTile(one) == null && world.GetTile(four) == null && world.GetTile(three) == null)
+        {
+            world.SetTile(cell, wall_one_corners_two_tile_asset);
+        }
+        else if (world.GetTile(one) == null && world.GetTile(four) == null && world.GetTile(two) == null)
+        {
+            world.SetTile(cell, wall_one_corners_three_tile_asset);
+        }
+        else if (world.GetTile(one) == null && world.GetTile(two) == null && world.GetTile(three) == null)
+        {
+            world.SetTile(cell, wall_one_corners_four_tile_asset);
+        }
+        else if (world.GetTile(one) == null && world.GetTile(four) == null)
+        {
+            world.SetTile(cell, wall_two_corners_left_tile_asset);
+        }
+        else if (world.GetTile(four) == null && world.GetTile(three) == null)
+        {
+            world.SetTile(cell, wall_two_corners_up_tile_asset);
+        }
+        else if (world.GetTile(three) == null && world.GetTile(two) == null)
+        {
+            world.SetTile(cell, wall_two_corners_right_tile_asset);
+        }
+        else if (world.GetTile(two) == null && world.GetTile(one) == null)
+        {
+            world.SetTile(cell, wall_two_corners_down_tile_asset);
+        }
+        else if (world.GetTile(one) == null)
+        {
+            world.SetTile(cell, wall_three_corners_three_tile_asset);
+        }
+        else if (world.GetTile(two) == null)
+        {
+            world.SetTile(cell, wall_three_corners_four_tile_asset);
+        }
+        else if (world.GetTile(one) == null)
+        {
+            world.SetTile(cell, wall_three_corners_three_tile_asset);
+        }
+        else if (world.GetTile(four) == null)
+        {
+            world.SetTile(cell, wall_three_corners_two_tile_asset);
+        }
+        else
+        {
+            world.SetTile(cell, wall_four_corners_tile_asset);
+        }
     }
 
     public int GenerateLeftWall(Room room, int x, int y, int wallsLeft, int doorCount)
@@ -333,14 +436,399 @@ public class World : MonoBehaviour
                     createdDoor = true;
                     doorCount--;
                 }
-                else
+                else/* if (!(doorChance >= wallsLeft))*/
                 {
-                    world.SetTile(cell, wall_tile_asset);
+                    if (x == room.startX - 1 && y == room.startY - 1)
+                    {
+                        Debug.Log("coloring bottom left corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY - 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX - 1 && y == room.startY + 7)
+                    {
+                        Debug.Log("coloring top left corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX + 7 && y == room.startY + 7)
+                    {
+                        Debug.Log("coloring top right corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 10, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX + 7 && y == room.startY - 1)
+                    {
+                        Debug.Log("coloring bottom right corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY - 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_right_outer_tile_asset);
+                    }
+                    else if (y == room.startY + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY + 9, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_down_outer_tile_asset);
+                    }
+                    else if (x == room.startX + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 9, room.startY + 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_left_outer_tile_asset);
+                    }
+                    else if (y == room.startY - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_up_outer_tile_asset);
+                    }
+                    else if (x == room.startX - 1 || x == room.startX + 7)
+                    {
+                        Debug.Log("setting vertical");
+                        world.SetTile(cell, wall_double_vertical_tile_asset);
+                    }
+                    else if (y == room.startY - 1 || y == room.startY + 7)
+                    {
+                        Debug.Log("setting horizontal");
+                        world.SetTile(cell, wall_double_horizontal_tile_asset);
+                    }
+                    else
+                    {
+                        Debug.Log("huh?");
+                    }
                 }
+                /*else
+                {
+                    Debug.Log("door thingy");
+                }*/
             }
             y++;
         }
         return doorCount;
+    }
+
+    public void RegenerateLeftWall(Room room, int x, int y)
+    {
+        Vector3Int cell;
+        while (y < room.startY + 8)
+        {
+            cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
+            if (world.GetTile(cell).name.Contains("wall"))
+            {
+                if (x == room.startX - 1 && y == room.startY - 1)
+                {
+                    Debug.Log("coloring bottom left corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY - 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX - 1 && y == room.startY + 7)
+                {
+                    Debug.Log("coloring top left corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX + 7 && y == room.startY + 7)
+                {
+                    Debug.Log("coloring top right corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 10, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX + 7 && y == room.startY - 1)
+                {
+                    Debug.Log("coloring bottom right corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY - 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_right_outer_tile_asset);
+                }
+                else if (y == room.startY + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY + 9, 0))) == null)
+                {
+                    world.SetTile(cell, wall_down_outer_tile_asset);
+                }
+                else if (x == room.startX + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 9, room.startY + 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_left_outer_tile_asset);
+                }
+                else if (y == room.startY - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_up_outer_tile_asset);
+                }
+                else if (x == room.startX - 1 || x == room.startX + 7)
+                {
+                    Debug.Log("setting vertical");
+                    world.SetTile(cell, wall_double_vertical_tile_asset);
+                }
+                else if (y == room.startY - 1 || y == room.startY + 7)
+                {
+                    Debug.Log("setting horizontal");
+                    world.SetTile(cell, wall_double_horizontal_tile_asset);
+                }
+                else
+                {
+                    Debug.Log("huh?");
+                }
+            }
+            y++;
+        }
+    }
+
+    public void RegenerateUpWall(Room room, int x, int y)
+    {
+        Vector3Int cell;
+        while (x < room.startX + 8)
+        {
+            cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
+            if (world.GetTile(cell).name.Contains("wall"))
+            {
+                if (x == room.startX - 1 && y == room.startY - 1)
+                {
+                    Debug.Log("coloring bottom left corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY - 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX - 1 && y == room.startY + 7)
+                {
+                    Debug.Log("coloring top left corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX + 7 && y == room.startY + 7)
+                {
+                    Debug.Log("coloring top right corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 10, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX + 7 && y == room.startY - 1)
+                {
+                    Debug.Log("coloring bottom right corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY - 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_right_outer_tile_asset);
+                }
+                else if (y == room.startY + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY + 9, 0))) == null)
+                {
+                    world.SetTile(cell, wall_down_outer_tile_asset);
+                }
+                else if (x == room.startX + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 9, room.startY + 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_left_outer_tile_asset);
+                }
+                else if (y == room.startY - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_up_outer_tile_asset);
+                }
+                else if (x == room.startX - 1 || x == room.startX + 7)
+                {
+                    Debug.Log("setting vertical");
+                    world.SetTile(cell, wall_double_vertical_tile_asset);
+                }
+                else if (y == room.startY - 1 || y == room.startY + 7)
+                {
+                    Debug.Log("setting horizontal");
+                    world.SetTile(cell, wall_double_horizontal_tile_asset);
+                }
+                else
+                {
+                    Debug.Log("huh?");
+                }
+            }
+            x++;
+        }
+    }
+
+    public void RegenerateRightWall(Room room, int x, int y)
+    {
+        Vector3Int cell;
+        while (y > room.startY - 1)
+        {
+            cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
+            if (world.GetTile(cell).name.Contains("wall"))
+            {
+                if (x == room.startX - 1 && y == room.startY - 1)
+                {
+                    Debug.Log("coloring bottom left corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY - 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX - 1 && y == room.startY + 7)
+                {
+                    Debug.Log("coloring top left corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX + 7 && y == room.startY + 7)
+                {
+                    Debug.Log("coloring top right corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 10, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX + 7 && y == room.startY - 1)
+                {
+                    Debug.Log("coloring bottom right corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY - 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_right_outer_tile_asset);
+                }
+                else if (y == room.startY + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY + 9, 0))) == null)
+                {
+                    world.SetTile(cell, wall_down_outer_tile_asset);
+                }
+                else if (x == room.startX + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 9, room.startY + 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_left_outer_tile_asset);
+                }
+                else if (y == room.startY - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_up_outer_tile_asset);
+                }
+                else if (x == room.startX - 1 || x == room.startX + 7)
+                {
+                    Debug.Log("setting vertical");
+                    world.SetTile(cell, wall_double_vertical_tile_asset);
+                }
+                else if (y == room.startY - 1 || y == room.startY + 7)
+                {
+                    Debug.Log("setting horizontal");
+                    world.SetTile(cell, wall_double_horizontal_tile_asset);
+                }
+                else
+                {
+                    Debug.Log("huh?");
+                }
+            }
+            y--;
+        }
+    }
+
+    public void RegenerateDownWall(Room room, int x, int y)
+    {
+        Vector3Int cell;
+        while (x > room.startX - 1)
+        {
+            cell = world.WorldToCell(new Vector3Int(x, y, zAxis));
+            if (world.GetTile(cell).name.Contains("wall"))
+            {
+                if (x == room.startX - 1 && y == room.startY - 1)
+                {
+                    Debug.Log("coloring bottom left corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY - 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX - 1 && y == room.startY + 7)
+                {
+                    Debug.Log("coloring top left corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX + 7 && y == room.startY + 7)
+                {
+                    Debug.Log("coloring top right corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 10, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX + 7 && y == room.startY - 1)
+                {
+                    Debug.Log("coloring bottom right corner");
+                    Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                    Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                    Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY - 2, 0));
+                    Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                    GenerateCorner(cell, one, two, three, four);
+                }
+                else if (x == room.startX - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_right_outer_tile_asset);
+                }
+                else if (y == room.startY + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY + 9, 0))) == null)
+                {
+                    world.SetTile(cell, wall_down_outer_tile_asset);
+                }
+                else if (x == room.startX + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 9, room.startY + 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_left_outer_tile_asset);
+                }
+                else if (y == room.startY - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0))) == null)
+                {
+                    world.SetTile(cell, wall_up_outer_tile_asset);
+                }
+                else if (x == room.startX - 1 || x == room.startX + 7)
+                {
+                    Debug.Log("setting vertical");
+                    world.SetTile(cell, wall_double_vertical_tile_asset);
+                }
+                else if (y == room.startY - 1 || y == room.startY + 7)
+                {
+                    Debug.Log("setting horizontal");
+                    world.SetTile(cell, wall_double_horizontal_tile_asset);
+                }
+                else
+                {
+                    Debug.Log("huh?");
+                }
+            }
+            x--;
+        }
     }
 
     public int GenerateUpWall(Room room, int x, int y, int wallsLeft, int doorCount)
@@ -367,9 +855,74 @@ public class World : MonoBehaviour
                     createdDoor = true;
                     doorCount--;
                 }
-                else
+                else/* if (!(doorChance >= wallsLeft))*/
                 {
-                    world.SetTile(cell, wall_tile_asset);
+                    if (x == room.startX - 1 && y == room.startY - 1)
+                    {
+                        Debug.Log("coloring bottom left corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY - 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX - 1 && y == room.startY + 7)
+                    {
+                        Debug.Log("coloring top left corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX + 7 && y == room.startY + 7)
+                    {
+                        Debug.Log("coloring top right corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 10, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX + 7 && y == room.startY - 1)
+                    {
+                        Debug.Log("coloring bottom right corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY - 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_right_outer_tile_asset);
+                    }
+                    else if (y == room.startY + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY + 9, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_down_outer_tile_asset);
+                    }
+                    else if (x == room.startX + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 9, room.startY + 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_left_outer_tile_asset);
+                    }
+                    else if (y == room.startY - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_up_outer_tile_asset);
+                    }
+                    else if (x == room.startX - 1 || x == room.startX + 7)
+                    {
+                        Debug.Log("setting vertical");
+                        world.SetTile(cell, wall_double_vertical_tile_asset);
+                    }
+                    else if (y == room.startY - 1 || y == room.startY + 7)
+                    {
+                        Debug.Log("setting horizontal");
+                        world.SetTile(cell, wall_double_horizontal_tile_asset);
+                    }
+                    else
+                    {
+                        Debug.Log("huh?");
+                    }
                 }
             }
             x++;
@@ -401,9 +954,74 @@ public class World : MonoBehaviour
                     createdDoor = true;
                     doorCount--;
                 }
-                else
+                else/* if (!(doorChance >= wallsLeft))*/
                 {
-                    world.SetTile(cell, wall_tile_asset);
+                    if (x == room.startX - 1 && y == room.startY - 1)
+                    {
+                        Debug.Log("coloring bottom left corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY - 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX - 1 && y == room.startY + 7)
+                    {
+                        Debug.Log("coloring top left corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX + 7 && y == room.startY + 7)
+                    {
+                        Debug.Log("coloring top right corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 10, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX + 7 && y == room.startY - 1)
+                    {
+                        Debug.Log("coloring bottom right corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY - 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_right_outer_tile_asset);
+                    }
+                    else if (y == room.startY + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY + 9, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_down_outer_tile_asset);
+                    }
+                    else if (x == room.startX + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 9, room.startY + 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_left_outer_tile_asset);
+                    }
+                    else if (y == room.startY - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_up_outer_tile_asset);
+                    }
+                    else if (x == room.startX - 1 || x == room.startX + 7)
+                    {
+                        Debug.Log("setting vertical");
+                        world.SetTile(cell, wall_double_vertical_tile_asset);
+                    }
+                    else if (y == room.startY - 1 || y == room.startY + 7)
+                    {
+                        Debug.Log("setting horizontal");
+                        world.SetTile(cell, wall_double_horizontal_tile_asset);
+                    }
+                    else
+                    {
+                        Debug.Log("huh?");
+                    }
                 }
             }
             y--;
@@ -434,9 +1052,74 @@ public class World : MonoBehaviour
                     }
                     createdDoor = true;
                 }
-                else
+                else/* if (!(doorChance >= wallsLeft))*/
                 {
-                    world.SetTile(cell, wall_tile_asset);
+                    if (x == room.startX - 1 && y == room.startY - 1)
+                    {
+                        Debug.Log("coloring bottom left corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY - 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX - 1 && y == room.startY + 7)
+                    {
+                        Debug.Log("coloring top left corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + -2, room.startY + 10, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX + 7 && y == room.startY + 7)
+                    {
+                        Debug.Log("coloring top right corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 10, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 10, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX + 7 && y == room.startY - 1)
+                    {
+                        Debug.Log("coloring bottom right corner");
+                        Vector3Int two = world.WorldToCell(new Vector3(room.startX + 2, room.startY + 2, 0));
+                        Vector3Int one = world.WorldToCell(new Vector3(room.startX + 10, room.startY + 2, 0));
+                        Vector3Int four = world.WorldToCell(new Vector3(room.startX + 10, room.startY - 2, 0));
+                        Vector3Int three = world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0));
+                        GenerateCorner(cell, one, two, three, four);
+                    }
+                    else if (x == room.startX - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX - 2, room.startY + 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_right_outer_tile_asset);
+                    }
+                    else if (y == room.startY + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY + 9, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_down_outer_tile_asset);
+                    }
+                    else if (x == room.startX + 7 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 9, room.startY + 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_left_outer_tile_asset);
+                    }
+                    else if (y == room.startY - 1 && world.GetTile(world.WorldToCell(new Vector3(room.startX + 2, room.startY - 2, 0))) == null)
+                    {
+                        world.SetTile(cell, wall_up_outer_tile_asset);
+                    }
+                    else if (x == room.startX - 1 || x == room.startX + 7)
+                    {
+                        Debug.Log("setting vertical");
+                        world.SetTile(cell, wall_double_vertical_tile_asset);
+                    }
+                    else if (y == room.startY - 1 || y == room.startY + 7)
+                    {
+                        Debug.Log("setting horizontal");
+                        world.SetTile(cell, wall_double_horizontal_tile_asset);
+                    }
+                    else
+                    {
+                        Debug.Log("huh?");
+                    }
                 }
             }
             x--;

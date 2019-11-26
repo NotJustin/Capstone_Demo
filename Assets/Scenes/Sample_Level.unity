@@ -246,7 +246,62 @@ MonoBehaviour:
   room_6: {fileID: 0}
   camera: {fileID: 519420028}
   floor_tile_asset: {fileID: 11400000, guid: b63c5d89d8ba1704f9058f18e3018f54, type: 2}
-  wall_tile_asset: {fileID: 11400000, guid: 5035b75a10fee0b469f5ec484c9d0fc8, type: 2}
+  wall_left_outer_tile_asset: {fileID: 11400000, guid: 7b401888bc27f7b47bdc647d21d62c75,
+    type: 2}
+  wall_up_outer_tile_asset: {fileID: 11400000, guid: b8e13cc1083e01845b9c5ed40d2decfc,
+    type: 2}
+  wall_right_outer_tile_asset: {fileID: 11400000, guid: b7e1aa507ed1e9f428daaee8a50d1a41,
+    type: 2}
+  wall_down_outer_tile_asset: {fileID: 11400000, guid: 43d38c27f46c2334cbd7f1961230a6e9,
+    type: 2}
+  wall_double_vertical_tile_asset: {fileID: 11400000, guid: 2ccb632f383e02244bb371fab5ef70fa,
+    type: 2}
+  wall_double_horizontal_tile_asset: {fileID: 11400000, guid: b1452d0f82a77a042ae0f3af84f2635d,
+    type: 2}
+  wall_triple_left_tile_asset: {fileID: 11400000, guid: 2cdd70988561dec48bee5857e51a0601,
+    type: 2}
+  wall_triple_up_tile_asset: {fileID: 11400000, guid: b6a9cb370ce2c664c8ed0193964cf52c,
+    type: 2}
+  wall_triple_right_tile_asset: {fileID: 11400000, guid: a14de876365c42d41a6e36515be0eacf,
+    type: 2}
+  wall_triple_down_tile_asset: {fileID: 11400000, guid: 56b5e8a531adce04fa1168cfcc313bc9,
+    type: 2}
+  wall_blank_tile_asset: {fileID: 11400000, guid: b7e2a51e56972934c8015229cb10d736,
+    type: 2}
+  wall_four_corners_tile_asset: {fileID: 11400000, guid: d55d06e58930e714bb36f99eae2d15a5,
+    type: 2}
+  wall_one_corners_one_tile_asset: {fileID: 11400000, guid: 0196d25832de5874f909d8eae9d28732,
+    type: 2}
+  wall_one_corners_two_tile_asset: {fileID: 11400000, guid: aeb9516660347e448a06e9dbfc3c68e2,
+    type: 2}
+  wall_one_corners_three_tile_asset: {fileID: 11400000, guid: 69e21f39c95f96c4ea53b9a76a38e0a6,
+    type: 2}
+  wall_one_corners_four_tile_asset: {fileID: 11400000, guid: 7d32751aac975c943951f7f37c4d553b,
+    type: 2}
+  wall_two_corners_left_tile_asset: {fileID: 11400000, guid: 558b60d7b8452a64c9501e5005e53d1f,
+    type: 2}
+  wall_two_corners_up_tile_asset: {fileID: 11400000, guid: f3a0f5c8455b41440bf4be7cf14c9128,
+    type: 2}
+  wall_two_corners_right_tile_asset: {fileID: 11400000, guid: 1b0ee1d925fe0bc4b9d577971b68e89c,
+    type: 2}
+  wall_two_corners_down_tile_asset: {fileID: 11400000, guid: 9a3a9c139a98f8340a5b1e916e9944be,
+    type: 2}
+  wall_three_corners_two_tile_asset: {fileID: 11400000, guid: 05b12c46ace827a48b87e2a424e33460,
+    type: 2}
+  wall_three_corners_one_tile_asset: {fileID: 11400000, guid: f31c96ddd61c1ac4899dfac3626a1c49,
+    type: 2}
+  wall_three_corners_four_tile_asset: {fileID: 11400000, guid: c21eb83ae913e5e48a1a07ce6d8f31df,
+    type: 2}
+  wall_three_corners_three_tile_asset: {fileID: 11400000, guid: 67e3edbf41b3a5a47b153cc4c1d858c5,
+    type: 2}
+  wall_single_left_tile_asset: {fileID: 11400000, guid: 335c4f89457125d42b092b41d7353786,
+    type: 2}
+  wall_single_up_tile_asset: {fileID: 11400000, guid: 008939a4f8a4f104abb8fb4d6df78094,
+    type: 2}
+  wall_single_right_tile_asset: {fileID: 11400000, guid: f5cf649fa92db4f4c8900f911a915a44,
+    type: 2}
+  wall_single_down_tile_asset: {fileID: 11400000, guid: 72465952cdecc0449b89dc8bdbafcc7e,
+    type: 2}
   door_tile_asset: {fileID: 11400000, guid: 589e61107cc17d843aa01bd6c2e39250, type: 2}
   empty_tile_asset: {fileID: 11400000, guid: db43cfebfce0b414389c0a447e69bf5d, type: 2}
   world: {fileID: 592030213}
@@ -503,16 +558,7 @@ Tilemap:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 592030212}
   m_Enabled: 1
-  m_Tiles:
-  - first: {x: 35, y: 23, z: 0}
-    second:
-      m_TileIndex: 30
-      m_TileSpriteIndex: 30
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_ObjectToInstantiate: {fileID: 0}
-      m_TileFlags: 0
-      m_ColliderType: 1
+  m_Tiles: {}
   m_AnimatedTiles: {}
   m_TileAssetArray:
   - m_RefCount: 0
@@ -575,8 +621,8 @@ Tilemap:
     m_Data: {fileID: 0}
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 1
-    m_Data: {fileID: 11400000, guid: b63c5d89d8ba1704f9058f18e3018f54, type: 2}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileSpriteArray:
   - m_RefCount: 0
     m_Data: {fileID: 0}
@@ -638,30 +684,30 @@ Tilemap:
     m_Data: {fileID: 0}
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 1
-    m_Data: {fileID: 21300000, guid: 51a5c7c2a92716f4ba4650dba51ff329, type: 3}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileMatrixArray:
-  - m_RefCount: 1
+  - m_RefCount: 0
     m_Data:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
+      e00: NaN
+      e01: NaN
+      e02: 5.351512e+15
+      e03: 7.0575225e+14
+      e10: NaN
+      e11: NaN
+      e12: 5.83e-43
+      e13: 5.83e-43
+      e20: 2.1049342e+24
+      e21: 2.1049464e+24
+      e22: -3.4097318e+28
+      e23: 2.1049464e+24
+      e30: 5.83e-43
+      e31: 5.83e-43
+      e32: 4.5916e-41
+      e33: 5.83e-43
   m_TileColorArray:
-  - m_RefCount: 1
-    m_Data: {r: 1, g: 1, b: 1, a: 1}
+  - m_RefCount: 0
+    m_Data: {r: 2.8242436e-11, g: 2.8242436e-11, b: 2.8242436e-11, a: 2.8242436e-11}
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Origin: {x: -20, y: -2, z: 0}
