@@ -15,12 +15,28 @@ public class Player : MonoBehaviour
     GameObject worldObj;
     public World world;
 
+    public bool finished;
+    public bool attacked;
+
+    public GameObject[] cards;
+
     public int maxMoves = 2;
     public int moves = 2;
+    public int health;
+    public int armor;
+    public int energyMax;
+    public int energy;
+    public int generation;
+    public int charge;
+    public int attack;
+
+    public Sprite sprite;
+
     public float playerSpeed = 0.25f;
     public int pendingMoves = 0;
     public bool moving = false;
     public bool started = false;
+    public int range = 3;
 
     public Vector3Int start;
 
@@ -36,15 +52,24 @@ public class Player : MonoBehaviour
 
     public List<Vector3Int> path;
 
+    public GameObject selectedEnemy;
+
     public bool turnStarted = false;
     void Awake()
     {
+        cards = new GameObject[transform.GetChild(0).transform.childCount];
+        for (int i = 0; i < transform.GetChild(0).transform.childCount; i++)
+        {
+            cards[i] = transform.GetChild(0).GetChild(i).gameObject;
+        }
         worldObj = GameObject.FindGameObjectWithTag("TileWorld");
         turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
         turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
         world = worldObj.GetComponent<World>();
         animator = GetComponent<Animator>();
         lastPosition = new Vector3(-1, -1, 0);
+        finished = false;
+        attacked = false;
     }
 
     //bool updating = false;
@@ -53,7 +78,6 @@ public class Player : MonoBehaviour
     {
         if (turnHandler.activePlayer == this && turnHandler.playerTurn)
         {
-            turnHandler.transform.position = new Vector3(transform.position.x, transform.position.y, -10);
             if (turnHandler.confirm && pendingMoves > 0 && path.Count > 0)
             {
                 MovePlayer();
@@ -91,17 +115,21 @@ public class Player : MonoBehaviour
                         {
                             prevRoom.playerCount--;
                             room.playerCount++;
-                            if (prevRoom.playerCount == 0)
+                            /*if (prevRoom.playerCount == 0)
                             {
                                 prevRoom.Hide();
                             }
                             if (room.playerCount == 1)
                             {
                                 room.Show();
-                            }
+                            }*/
                         }
                         prevRoom = room;
                         pleaseExit = true;
+                        if (moves > maxMoves && room.enemies.Count > 0)
+                        {
+                            moves = maxMoves - 1;
+                        }
                         break;
                     }
                 }
@@ -191,6 +219,14 @@ public class Player : MonoBehaviour
         }
         else
         {
+            if (destination.x > transform.position.x)
+            {
+                animator.transform.localEulerAngles = new Vector3(0, 180, 0);
+            }
+            else
+            {
+                animator.transform.localEulerAngles = new Vector3(0, 0, 0);
+            }
             animator.Play("walk");
             float distanceCovered, fractionOfJourney;
             if (transform.position != destination)
@@ -270,6 +306,16 @@ public class Player : MonoBehaviour
     {
         turnStarted = true;
         moves = maxMoves;
+        energy += generation;
+        if (energy > energyMax)
+        {
+            energy = energyMax;
+        }
+        if (room.enemies.Count == 0)
+        {
+            moves = 999;
+        }
+        attacked = false;
     }
 
     public void HighlightStartPosition()
@@ -283,4 +329,80 @@ public class Player : MonoBehaviour
         world.HighlightNeighbors(playerCell);
     }
 
+    public bool Attack(GameObject enemyObj)
+    {
+        if (IsEnemyInLineOfSight(enemyObj) && InRange(transform.position, enemyObj.transform.position))
+        {
+            IEnemy enemy = turnHandler.FetchEnemyType(turnHandler.activePlayer.selectedEnemy);
+            int damage = attack - enemy.armor;
+            Debug.Log("Health before: " + enemy.health);
+            enemy.health -= damage;
+            Debug.Log("Health after: " + enemy.health);
+            if (enemy.health <= 0)
+            {
+                turnHandler.enemyList.Remove(turnHandler.activePlayer.selectedEnemy);
+                enemy.room.enemies.Remove(turnHandler.activePlayer.selectedEnemy);
+                Destroy(turnHandler.activePlayer.selectedEnemy);
+                turnHandler.activeEnemy = null;
+            }
+            attacked = true;
+            return true;
+        }
+        return false;
+    }
+
+    public bool IsEnemyInLineOfSight(GameObject enemy)
+    {
+        if (turnHandler.FetchEnemyType(enemy).room != room)
+        {
+            return false;
+        }
+        Vector2 l1p1 = new Vector2(RoundOffset(transform.position.x), RoundOffset(transform.position.y));
+        Vector2 l1p2 = new Vector2(RoundOffset(enemy.transform.position.x), RoundOffset(enemy.transform.position.y));
+        int xMin = (int) (transform.position.x < enemy.transform.position.x ? transform.position.x : enemy.transform.position.x);
+        int yMin = (int) (transform.position.y < enemy.transform.position.y ? transform.position.y : enemy.transform.position.y);
+        int xMax = (int) (transform.position.x > enemy.transform.position.x ? transform.position.x : enemy.transform.position.x);
+        int yMax = (int) (transform.position.y > enemy.transform.position.y ? transform.position.y : enemy.transform.position.y);
+        for (int x = xMin; x < xMax; x++)
+        {
+            for (int y = yMin; y < yMax; y++)
+            {
+                if (room.tiles[x - room.startX, y - room.startY].type == -1)
+                {
+                    if (DoLinesIntersect(l1p1, l1p2, new Vector2(x - 0.5f, y - 0.5f), new Vector2(x - 0.5f, y + 0.5f)))
+                    {
+                        return false;
+                    }
+                    else if (DoLinesIntersect(l1p1, l1p2, new Vector2(x - 0.5f, y - 0.5f), new Vector2(x + 0.5f, y - 0.5f)))
+                    {
+                        return false;
+                    }
+                    else if (DoLinesIntersect(l1p1, l1p2, new Vector2(x + 0.5f, y + 0.5f), new Vector2(x + 0.5f, y - 0.5f)))
+                    {
+                        return false;
+                    }
+                    else if (DoLinesIntersect(l1p1, l1p2, new Vector2(x + 0.5f, y + 0.5f), new Vector2(x - 0.5f, y + 0.5f)))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public bool DoLinesIntersect(Vector2 l1p1, Vector2 l1p2, Vector2 l2p1, Vector2 l2p2)
+    {
+        Vector2 a = l1p2 - l1p1, b = l2p1 - l2p2, c = l1p1 - l2p1;
+        float alphaNumerator = b.y * c.x - b.x * c.y, betaNumerator = a.x * c.y - a.y * c.x, denominator = a.y * b.x - a.x * b.y;
+        if (denominator == 0) return false;
+        else if (denominator > 0 && (alphaNumerator < 0 || alphaNumerator > denominator || betaNumerator < 0 || betaNumerator > denominator)) return false;
+        else if (alphaNumerator > 0 || alphaNumerator < denominator || betaNumerator > 0 || betaNumerator < denominator) return false;
+        return true;
+    }
+
+    public bool InRange(Vector3 start, Vector3 goal)
+    {
+        return (int)(Mathf.Max(Mathf.Abs(start.x - goal.x), Mathf.Abs(start.y - goal.y))) <= range;
+    }
 }

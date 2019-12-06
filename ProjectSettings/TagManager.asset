@@ -8,8 +8,14 @@ TagManager:
   - Text
   - TileWorld
   - World
-  - thrasher
   - Enemies
+  - ActivePlayerSprite
+  - weapon
+  - utility
+  - defensive
+  - engineering
+  - Scuttler
+  - thrasher
   layers:
   - Default
   - TransparentFX
@@ -44,11 +50,11 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Default
-    uniqueID: 0
-    locked: 0
   - name: Background
     uniqueID: 2917658199
+    locked: 0
+  - name: Default
+    uniqueID: 0
     locked: 0
   - name: Foreground
     uniqueID: 1193777873

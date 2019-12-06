@@ -123,7 +123,7 @@ public class ScreenShotMaker : MonoBehaviour
 
         byte[] bytes = virtualPhoto.EncodeToPNG();
 
-        System.IO.File.WriteAllBytes(@"C:\Users\Justin\Pictures\_ss2.png", bytes);
+        System.IO.File.WriteAllBytes(@"C:\Users\Justin\Pictures\_ss3.png", bytes);
 
         Debug.Log("All done! Always happy to help you :)");
     }

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class Cursor : MonoBehaviour
@@ -19,6 +20,7 @@ public class Cursor : MonoBehaviour
     private readonly int zAxis = 0;
     Vector3 mousePosition;
     private SpriteRenderer spriteRenderer;
+    private int move = 0, attack = 1;
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -28,8 +30,9 @@ public class Cursor : MonoBehaviour
     }
     void Update()
     {
-        if (gui.mode == 0)
+        if (gui.mode == move)
         {
+            spriteRenderer.sprite = yellow_cursor;
             CursorFollowMouse();
             if (!turnHandler.activePlayer.moving && Input.GetMouseButton(0))
             {
@@ -37,18 +40,33 @@ public class Cursor : MonoBehaviour
                 /// the tile they are currently on when the player clicks their left mouse button.
                 Vector3Int goal = world.world.WorldToCell(transform.position);
                 /// If this statement is true, it adds the tile to the path. See CheckTile() for more info.
-                if (turnHandler.activePlayer.moves > 0 && world.CheckTile(turnHandler.activePlayer.start, goal) && world.IsNeighbor(turnHandler.activePlayer.start, goal))
+                if (turnHandler.activePlayer.moves > 0 && world.CheckTile(turnHandler.activePlayer.start, goal) && Array.Exists(world.possibleTiles, element => element == goal))
                 {
                     turnHandler.activePlayer.AddTileToPath(goal);
                 }
             }
-            if (Input.GetMouseButton(1))
+            else if (!turnHandler.activePlayer.moving && Input.GetMouseButton(1))
             {
                 /// Does the opposite of above. It checks if the cell the cursor is on is the last tile you selected. If so, it removes it from the list.
                 /// In the future, I would want the "last selected tile" to be a different color so that people aren't forced to memorize what the last tile they selected is.
                 /// Then, if they remove that tile, the one before that will change color as it is the "new" last tile selected.
                 Vector3Int coordinate = world.world.WorldToCell(transform.position);
                 turnHandler.activePlayer.RemoveTileFromPath(coordinate);
+            }
+        }
+        else if (gui.mode == attack)
+        {
+            spriteRenderer.sprite = yellow_other_cursor;
+            CursorFollowMouse();
+            if (Input.GetMouseButtonDown(0))
+            {  
+                for (int i = 0; i < turnHandler.enemyList.Count; i++)
+                {
+                    if (gui.selectedCard != null && transform.position == turnHandler.enemyList[i].transform.position)
+                    {
+                        turnHandler.activePlayer.selectedEnemy = turnHandler.enemyList[i].gameObject;
+                    }
+                }
             }
         }
         else

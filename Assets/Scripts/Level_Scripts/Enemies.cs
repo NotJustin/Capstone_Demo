@@ -17,11 +17,13 @@ public class DespawnedEnemy
 public abstract class IEnemy
 {
     public GameObject turnHandlerObj;
+    public Turn_Handler turnHandler;
     GameObject worldObj;
     public int health;
+    public int armor;
+    public int attack;
     public GameObject obj;
     World world;
-    List<Player> playerList;
     public Room room;
     public bool awaitMovement;
     public bool turnStarted;
@@ -29,8 +31,10 @@ public abstract class IEnemy
     public int moves;
     public int prevMoves;
     public float range;
+    public int damage;
     public List<Tile> path;
     public int tier;
+    public string text;
 
     public bool moving;
     float startTime;
@@ -48,18 +52,15 @@ public abstract class IEnemy
         attacked = false;
         awaitMovement = false;
         turnHandlerObj = GameObject.FindGameObjectWithTag("MainCamera");
+        turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
         worldObj = GameObject.FindGameObjectWithTag("TileWorld");
         world = worldObj.GetComponent<World>();
     }
 
     public abstract void PrimaryAttack();
-    public abstract void SecondaryAttack();
-    public abstract void SpecialAttack();
 
     public List<Tile> FindPathToNearestPlayer()
     {
-        //world = world.world;
-        //world = new Tile[2,2];
 
         /// setting all parents to null before creating paths because otherwise infinite loop problems occur.
 
@@ -70,10 +71,10 @@ public abstract class IEnemy
                 room.tiles[x, y].parent = null;
             }
         }
-        playerList = turnHandlerObj.GetComponent<Turn_Handler>().playerList;
+        Turn_Handler turnHandler = turnHandlerObj.GetComponent<Turn_Handler>();
         List<Tile> closestPath = null;
         List<Tile> currentPath = new List<Tile>();
-        foreach (Player player in playerList)
+        foreach (Player player in turnHandler.playerList)
         {
             if (player.room == null || room.number != player.room.number)
             {
@@ -123,7 +124,7 @@ public abstract class IEnemy
         }
         currentPath.Clear();
         currentPath = null;
-        for (int i = 0; i < closestPath.Count; i++)
+        /*for (int i = 0; i < closestPath.Count; i++)
         {
             if (closestPath[i].position == new Vector3(obj.transform.position.x + 0.5f, obj.transform.position.y + 0.5f, zAxis))
             {
@@ -134,7 +135,7 @@ public abstract class IEnemy
                 }
                 closestPath.RemoveAt(i);
             }
-        }
+        }*/
         destination = closestPath[0].position;
         destination = new Vector3(RoundOffset(destination.x), RoundOffset(destination.y), destination.z);
         if (obj.transform.position == destination)
@@ -142,16 +143,16 @@ public abstract class IEnemy
             closestPath[0].parent = null;
             closestPath.RemoveAt(0);
         }
-        if (InRange(closestPath, range))
+        /*if (InRange(closestPath, range))
         {
             return null;
-        }
+        }*/
         return closestPath;
     }
 
     public int GetHeuristic(Tile start, Tile goal)
     {
-        return (int)Vector3.Distance(start.position, goal.position);
+        return (int)Mathf.Max(Mathf.Abs(start.position.x - goal.position.x), Mathf.Abs(start.position.y - goal.position.y));
     }
 
     public bool UpdateF(Tile current, List<Tile> open, List<Tile> closed, Tile goal)
@@ -180,44 +181,48 @@ public abstract class IEnemy
         return false;
     }
 
-    void PopulateAdjacentArray(List<Tile> adjacent, Tile tile, Room tRoom)
+    void PopulateAdjacentArray(List<Tile> adjacent, Tile tile)
     {
-        Tile neighbor;
-        if (tile.cell.x > 0 && tile.cell.y > 0)
+        TileBase neighbor;
+        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x - 1, tile.cell.y, 0));
+        if (tile.cell.x > tile.room.startX && neighbor != null && !neighbor.name.Contains("wall"))
         {
-            Debug.Log("checking left");
-            neighbor = tRoom.tiles[tile.cell.x - 1, tile.cell.y];
-            if (!neighbor.tileBase.name.Contains("wall"))
-            {
-                adjacent.Add(neighbor);
-            }
+            adjacent.Add(tile.room.tiles[tile.cell.x - 1 - tile.room.startX, tile.cell.y - tile.room.startY]);
         }
-        if (tile.cell.x < tRoom.startX + 6 && tile.cell.y > 0)
+        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x + 1, tile.cell.y, 0));
+        if (tile.cell.x < tile.room.startX + 6 && neighbor != null && !neighbor.name.Contains("wall"))
         {
-            Debug.Log("checking right");
-            neighbor = tRoom.tiles[tile.cell.x + 1, tile.cell.y];
-            if (!neighbor.tileBase.name.Contains("wall"))
-            {
-                adjacent.Add(neighbor);
-            }
+            adjacent.Add(tile.room.tiles[tile.cell.x + 1 - tile.room.startX, tile.cell.y - tile.room.startY]);
         }
-        if (tile.cell.x > 0 && tile.cell.y < tRoom.startY + 6)
+        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x, tile.cell.y + 1, 0));
+        if (tile.cell.y < tile.room.startY + 6 && neighbor != null && !neighbor.name.Contains("wall"))
         {
-            Debug.Log("checking up");
-            neighbor = tRoom.tiles[tile.cell.x, tile.cell.y + 1];
-            if (!neighbor.tileBase.name.Contains("wall"))
-            {
-                adjacent.Add(neighbor);
-            }
+            adjacent.Add(tile.room.tiles[tile.cell.x - tile.room.startX, tile.cell.y + 1 - tile.room.startY]);
         }
-        if (tile.cell.x > 0 && tile.cell.y > 0)
+        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x, tile.cell.y - 1, 0));
+        if (tile.cell.y > tile.room.startY && neighbor != null && !neighbor.name.Contains("wall"))
         {
-            Debug.Log("checking down");
-            neighbor = tRoom.tiles[tile.cell.x, tile.cell.y - 1];
-            if (!neighbor.tileBase.name.Contains("wall"))
-            {
-                adjacent.Add(neighbor);
-            }
+            adjacent.Add(tile.room.tiles[tile.cell.x - tile.room.startX, tile.cell.y - 1 - tile.room.startY]);
+        }
+        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x - 1, tile.cell.y - 1, 0));
+        if (tile.cell.x > tile.room.startX && tile.cell.y > tile.room.startY && neighbor != null && !neighbor.name.Contains("wall"))
+        {
+            adjacent.Add(tile.room.tiles[tile.cell.x - 1 - tile.room.startX, tile.cell.y - 1 - tile.room.startY]);
+        }
+        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x + 1, tile.cell.y - 1, 0));
+        if (tile.cell.x < tile.room.startX + 6 && tile.cell.y > tile.room.startY && neighbor != null && !neighbor.name.Contains("wall"))
+        {
+            adjacent.Add(tile.room.tiles[tile.cell.x + 1 - tile.room.startX, tile.cell.y - 1 - tile.room.startY]);
+        }
+        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x - 1, tile.cell.y + 1, 0));
+        if (tile.cell.x > tile.room.startX && tile.cell.y < tile.room.startY + 6 && neighbor != null && !neighbor.name.Contains("wall"))
+        {
+            adjacent.Add(tile.room.tiles[tile.cell.x - 1 - tile.room.startX, tile.cell.y + 1 - tile.room.startY]);
+        }
+        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x + 1, tile.cell.y + 1, 0));
+        if (tile.cell.x < tile.room.startX + 6 && tile.cell.y < tile.room.startY + 6 && neighbor != null && !neighbor.name.Contains("wall"))
+        {
+            adjacent.Add(tile.room.tiles[tile.cell.x + 1 - tile.room.startX, tile.cell.y + 1 - tile.room.startY]);
         }
     }
     public bool BuildPathAStar(Tile start, Tile goal)
@@ -239,7 +244,7 @@ public abstract class IEnemy
             }
             closed.Add(open[0]);
             open.RemoveAt(0);
-            PopulateAdjacentArray(adjacent, closed[closed.Count - 1], room); //firstRoom
+            PopulateAdjacentArray(adjacent, closed[closed.Count - 1]); //firstRoom
 
             foreach (Tile tile in adjacent)
             {
@@ -268,12 +273,6 @@ public abstract class IEnemy
             }
             adjacent.Clear();
         }
-        /*Debug.Log("Open: " + open.Count);
-        Debug.Log("Closed: " + closed.Count);
-        for (int i = 0; i < closed.Count; i++)
-        {
-            Debug.Log(closed[i].cell);
-        }*/
         if (foundGoal)
         {
             return true;
@@ -284,6 +283,22 @@ public abstract class IEnemy
     public void StartTurn()
     {
         turnStarted = true;
+    }
+
+    public Player GetPlayerAtDestination()
+    {
+        for (int i = 0; i < turnHandler.playerList.Count; i++)
+        {
+            if (turnHandler.playerList[i] != null)
+            {
+                Vector3Int playerCell = new Vector3Int((int)RoundOffset(turnHandler.playerList[i].transform.position.x), (int)RoundOffset(turnHandler.playerList[i].transform.position.y), 0);
+                if (playerCell == path[path.Count - 1].cell)
+                {
+                    return turnHandler.playerList[i];
+                }
+            }
+        }
+        return null;
     }
 
     public void EndTurn()
@@ -408,11 +423,65 @@ public abstract class IEnemy
         }
     }
 
+    public bool IsPlayerInLineOfSight(Player player)
+    {
+        if (player == null || player.room != room)
+        {
+            return false;
+        }
+        Vector2 l1p1 = new Vector2(RoundOffset(obj.transform.position.x), RoundOffset(obj.transform.position.y));
+        Vector2 l1p2 = new Vector2(RoundOffset(player.transform.position.x), RoundOffset(player.transform.position.y));
+        int xMin = (int)(obj.transform.position.x < player.transform.position.x ? obj.transform.position.x : player.transform.position.x);
+        int yMin = (int)(obj.transform.position.y < player.transform.position.y ? obj.transform.position.y : player.transform.position.y);
+        int xMax = (int)(obj.transform.position.x > player.transform.position.x ? obj.transform.position.x : player.transform.position.x);
+        int yMax = (int)(obj.transform.position.y > player.transform.position.y ? obj.transform.position.y : player.transform.position.y);
+        for (int x = xMin; x < xMax; x++)
+        {
+            for (int y = yMin; y < yMax; y++)
+            {
+                if (room.tiles[x - room.startX, y - room.startY].type == -1)
+                {
+                    if (DoLinesIntersect(l1p1, l1p2, new Vector2(x - 0.5f, y - 0.5f), new Vector2(x - 0.5f, y + 0.5f)))
+                    {
+                        return false;
+                    }
+                    else if (DoLinesIntersect(l1p1, l1p2, new Vector2(x - 0.5f, y - 0.5f), new Vector2(x + 0.5f, y - 0.5f)))
+                    {
+                        return false;
+                    }
+                    else if (DoLinesIntersect(l1p1, l1p2, new Vector2(x + 0.5f, y + 0.5f), new Vector2(x + 0.5f, y - 0.5f)))
+                    {
+                        return false;
+                    }
+                    else if (DoLinesIntersect(l1p1, l1p2, new Vector2(x + 0.5f, y + 0.5f), new Vector2(x - 0.5f, y + 0.5f)))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public bool DoLinesIntersect(Vector2 l1p1, Vector2 l1p2, Vector2 l2p1, Vector2 l2p2)
+    {
+        Vector2 a = l1p2 - l1p1, b = l2p1 - l2p2, c = l1p1 - l2p1;
+        float alphaNumerator = b.y * c.x - b.x * c.y, betaNumerator = a.x * c.y - a.y * c.x, denominator = a.y * b.x - a.x * b.y;
+        if (denominator == 0) return false;
+        else if (denominator > 0 && (alphaNumerator < 0 || alphaNumerator > denominator || betaNumerator < 0 || betaNumerator > denominator)) return false;
+        else if (alphaNumerator > 0 || alphaNumerator < denominator || betaNumerator > 0 || betaNumerator < denominator) return false;
+        return true;
+    }
+
+    public bool InRange2(Vector3 start, Vector3 goal)
+    {
+        return (int)(Mathf.Max(Mathf.Abs(start.x - goal.x), Mathf.Abs(start.y - goal.y))) <= range;
+    }
 }
 
 public class Enemies : MonoBehaviour
 {
-    public GameObject thrasher;
+    public GameObject scuttler;
     public List<GameObject> tierOneEnemies, tierTwoEnemies, tierThreeEnemies, tierFourEnemies;
 
     public GameObject turnHandlerObj;
@@ -420,7 +489,7 @@ public class Enemies : MonoBehaviour
 
     void Awake()
     {
-        tierTwoEnemies.Add(thrasher);
+        tierTwoEnemies.Add(scuttler);
         //enemies = new List<GameObject>();
         //activeEnemy = null;
         //tierOneEnemies.Add("Maggot");
