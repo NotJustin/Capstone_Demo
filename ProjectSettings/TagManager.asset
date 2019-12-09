@@ -16,6 +16,7 @@ TagManager:
   - engineering
   - Scuttler
   - thrasher
+  - Slinger
   layers:
   - Default
   - TransparentFX

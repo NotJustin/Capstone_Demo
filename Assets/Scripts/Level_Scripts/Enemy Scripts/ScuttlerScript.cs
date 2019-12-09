@@ -6,7 +6,7 @@ public class Scuttler : IEnemy
 {
     public Scuttler(GameObject obj) : base(obj)
     {
-        health = 3;
+        health = 1;
         tier = 2;
         attack = 1;
         armor = 0;

@@ -165,9 +165,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scuttler: {fileID: 5822090312387286056, guid: 6c80509dd5eddf44981958be0ef7f705,
     type: 3}
+  slinger: {fileID: 3041043003523390898, guid: aba8c18bab1952f43bb16736914ec20e, type: 3}
+  carapace: {fileID: 2904723497651937983, guid: c52fd676cb332be4f97620f58b9578ed,
+    type: 3}
+  peacekeeper: {fileID: 1605044578821156334, guid: 7eafc1567d9119d46b4fc47bdac88e56,
+    type: 3}
+  mauler: {fileID: 478117406049016224, guid: 4a750fbb71e61504aac44e226a691b4a, type: 3}
+  tendrils: {fileID: 1874058001386676271, guid: fc0d7219cf321f044ae5a5ec9ea576d6,
+    type: 3}
+  ravager: {fileID: 5822090312387286056, guid: 6c80509dd5eddf44981958be0ef7f705, type: 3}
   tierOneEnemies: []
   tierTwoEnemies: []
-  tierThreeEnemies: []
+  tierThreeEnemies:
+  - {fileID: 5822090312387286056, guid: 6c80509dd5eddf44981958be0ef7f705, type: 3}
   tierFourEnemies: []
   turnHandlerObj: {fileID: 519420028}
   turnHandler: {fileID: 0}

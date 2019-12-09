@@ -71,15 +71,16 @@ public class Room
         {
             for (int y = 0; y < tiles.GetLength(1); y++)
             {
-                /*if (tiles[x, y].type == enemyOne)
+                if (tiles[x, y].type == enemyOne)
                 {
-<<<<<<< HEAD
-                    Instantiate();
-=======
                     GameObject enemy = GameObject.Instantiate(enemyData.tierOneEnemies[Random.Range(0, enemyData.tierOneEnemies.Count)]);
                     enemy.transform.position = tiles[x, y].position;
-                }*/
-                /*else */if (tiles[x, y].type == enemyTwo || tiles[x, y].type == enemyThree)
+                    turnHandler.enemyList.Add(enemy);
+                    enemies.Add(enemy);
+                    enemy.transform.parent = enemiesObj.transform;
+                    turnHandler.FetchEnemyType(enemy).room = this;
+                }
+                else if (tiles[x, y].type == enemyTwo)
                 {
                     GameObject enemy = GameObject.Instantiate(enemyData.tierTwoEnemies[Random.Range(0, enemyData.tierTwoEnemies.Count)]);
                     enemy.transform.position = new Vector3(enemyData.RoundOffset(tiles[x, y].position.x), enemyData.RoundOffset(tiles[x, y].position.y), tiles[x, y].position.z);
@@ -88,17 +89,24 @@ public class Room
                     enemy.transform.parent = enemiesObj.transform;
                     turnHandler.FetchEnemyType(enemy).room = this;
                 }
-                /*else if (tiles[x, y].type == enemyThree)
+                else if (tiles[x, y].type == enemyThree)
                 {
                     GameObject enemy = GameObject.Instantiate(enemyData.tierThreeEnemies[Random.Range(0, enemyData.tierThreeEnemies.Count)]);
                     enemy.transform.position = tiles[x, y].position;
->>>>>>> e1757c3a37e0908e3435c03af721f669998a5b4c
+                    turnHandler.enemyList.Add(enemy);
+                    enemies.Add(enemy);
+                    enemy.transform.parent = enemiesObj.transform;
+                    turnHandler.FetchEnemyType(enemy).room = this;
                 }
                 else if (tiles[x, y].type == enemyFour)
                 {
                     GameObject enemy = GameObject.Instantiate(enemyData.tierFourEnemies[Random.Range(0, enemyData.tierFourEnemies.Count)]);
                     enemy.transform.position = tiles[x, y].position;
-                }*/
+                    turnHandler.enemyList.Add(enemy);
+                    enemies.Add(enemy);
+                    enemy.transform.parent = enemiesObj.transform;
+                    turnHandler.FetchEnemyType(enemy).room = this;
+                }
             }
         }
     }

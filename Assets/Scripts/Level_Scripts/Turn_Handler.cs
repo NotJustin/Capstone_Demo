@@ -126,9 +126,30 @@ public class Turn_Handler : MonoBehaviour
     }
     public IEnemy FetchEnemyType(GameObject enemy)
     {
-        if (enemy.tag == "Scuttler")
+        Debug.Log(enemy.name);
+        if (enemy.name.Contains("Scuttler"))
         {
             return enemy.GetComponent<ScuttlerScript>().scuttler;
+        }
+        else if (enemy.name.Contains("Slinger"))
+        {
+            return enemy.GetComponent<SlingerScript>().slinger;
+        }
+        else if (enemy.name.Contains("Carapace"))
+        {
+            return enemy.GetComponent<CarapaceScript>().carapace;
+        }
+        else if (enemy.name.Contains("PeaceKeeper"))
+        {
+            return enemy.GetComponent<PeaceKeeperScript>().peaceKeeper;
+        }
+        else if (enemy.name.Contains("Mauler"))
+        {
+            return enemy.GetComponent<MaulerScript>().mauler;
+        }
+        else if (enemy.name.Contains("Tendril"))
+        {
+            return enemy.GetComponent<TendrilScript>().tendril;
         }
         return null;
     }
