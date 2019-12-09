@@ -482,6 +482,13 @@ public abstract class IEnemy
 public class Enemies : MonoBehaviour
 {
     public GameObject scuttler;
+    public GameObject slinger;
+    public GameObject carapace;
+    public GameObject peacekeeper;
+    public GameObject mauler;
+    public GameObject tendrils;
+    public GameObject ravager;
+
     public List<GameObject> tierOneEnemies, tierTwoEnemies, tierThreeEnemies, tierFourEnemies;
 
     public GameObject turnHandlerObj;
@@ -489,7 +496,27 @@ public class Enemies : MonoBehaviour
 
     void Awake()
     {
+        tierOneEnemies.Add(scuttler);
         tierTwoEnemies.Add(scuttler);
+        tierThreeEnemies.Add(scuttler);
+        tierFourEnemies.Add(scuttler);
+
+        tierOneEnemies.Add(slinger);
+        tierTwoEnemies.Add(slinger);
+        tierThreeEnemies.Add(slinger);
+        tierFourEnemies.Add(slinger);
+
+        tierThreeEnemies.Add(carapace);
+        tierFourEnemies.Add(carapace);
+
+        tierFourEnemies.Add(peacekeeper);
+
+        tierThreeEnemies.Add(mauler);
+        tierFourEnemies.Add(mauler);
+
+        tierThreeEnemies.Add(tendrils);
+
+
         //enemies = new List<GameObject>();
         //activeEnemy = null;
         //tierOneEnemies.Add("Maggot");
