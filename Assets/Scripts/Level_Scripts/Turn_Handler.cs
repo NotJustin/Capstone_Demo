@@ -88,7 +88,7 @@ public class Turn_Handler : MonoBehaviour
     {
         if (playerList.Count == 0)
         {
-            SceneManager.LoadScene("End_Scene", LoadSceneMode.Single);
+            SceneManager.LoadScene("Lose_Scene", LoadSceneMode.Single);
         }
         if (playerTurn)
         {

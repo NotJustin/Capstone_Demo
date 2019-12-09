@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &257381401290535145
+--- !u!1 &2541818026731104571
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,53 +8,53 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4966147886766820909}
-  - component: {fileID: 5954172388490131230}
+  - component: {fileID: 7223615689817331711}
+  - component: {fileID: 8247574432809201356}
   m_Layer: 0
-  m_Name: Bayonet
+  m_Name: Syringe
   m_TagString: weapon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4966147886766820909
+--- !u!4 &7223615689817331711
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 257381401290535145}
+  m_GameObject: {fileID: 2541818026731104571}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 320, y: 240, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalPosition: {x: 320.00003, y: 240, z: 0}
+  m_LocalScale: {x: 2, y: 2.0000768, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5954172388490131230
+--- !u!114 &8247574432809201356
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 257381401290535145}
+  m_GameObject: {fileID: 2541818026731104571}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe1fe3eb5926c204499d0f3d19f8f033, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cost: 1
+  cost: 2
   moves: 0
-  sprite: {fileID: 21300000, guid: c8258c278fe959f41b72b64cbe2c9057, type: 3}
-  text: Melee Attack
+  sprite: {fileID: 21300000, guid: 06022cbe0ca505a4b9df0ade214bf1cc, type: 3}
+  text: Melee Attack. Upon kill gain 2 Energy and move 1.
   used: 0
   aoe: 0
   range: 1
-  damage: 3
+  damage: 1
   decreaseNextWeaponCostBy: 0
   decreaseNextWeaponCost: 0
-  energyGain: 0
-  moveGain: 0
+  energyGain: 2
+  moveGain: 1
   armorRemove: 0
   usesCharge: 0
   chargeGain: 0

@@ -7,9 +7,11 @@ public class WeaponCard : GenericCard
     public bool aoe;
     public int range;
     public int damage;
-
-    void Start()
-    {
-
-    }
+    public int decreaseNextWeaponCostBy;
+    public bool decreaseNextWeaponCost;
+    public int energyGain;
+    public int moveGain;
+    public int armorRemove;
+    public bool usesCharge;
+    public int chargeGain;
 }

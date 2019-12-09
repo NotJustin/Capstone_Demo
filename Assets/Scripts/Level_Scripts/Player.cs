@@ -54,6 +54,9 @@ public class Player : MonoBehaviour
 
     public GameObject selectedEnemy;
 
+    public bool decreaseWeaponCost;
+    public int decreaseWeaponCostBy;
+
     public bool turnStarted = false;
     void Awake()
     {
@@ -329,26 +332,51 @@ public class Player : MonoBehaviour
         world.HighlightNeighbors(playerCell);
     }
 
-    public bool Attack(GameObject enemyObj)
+    public bool Attack(WeaponCard card, GameObject enemyObj)
     {
+        range = card.range;
         if (IsEnemyInLineOfSight(enemyObj) && InRange(transform.position, enemyObj.transform.position))
         {
-            IEnemy enemy = turnHandler.FetchEnemyType(turnHandler.activePlayer.selectedEnemy);
+            IEnemy enemy = turnHandler.FetchEnemyType(selectedEnemy);
             int damage = attack - enemy.armor;
-            Debug.Log("Health before: " + enemy.health);
+            if (card.usesCharge)
+            {
+                damage += charge;
+                charge = 0;
+            }
             enemy.health -= damage;
-            Debug.Log("Health after: " + enemy.health);
             if (enemy.health <= 0)
             {
-                turnHandler.enemyList.Remove(turnHandler.activePlayer.selectedEnemy);
-                enemy.room.enemies.Remove(turnHandler.activePlayer.selectedEnemy);
+                turnHandler.enemyList.Remove(selectedEnemy);
+                enemy.room.enemies.Remove(selectedEnemy);
                 Destroy(turnHandler.activePlayer.selectedEnemy);
                 turnHandler.activeEnemy = null;
+                selectedEnemy = null;
             }
             attacked = true;
             return true;
         }
         return false;
+    }
+
+    public bool AOEAttack(WeaponCard card)
+    {
+        bool attacked = false;
+        for (int i = 0; i < room.enemies.Count; i++)
+        {
+            if (room.enemies[i] != null && Attack(card, room.enemies[i]))
+            {
+                attacked = true;
+            }
+        }
+        /*foreach (GameObject enemyObj in room.enemies)
+        {
+            if (Attack(enemyObj))
+            {
+                attacked = true;
+            }
+        }*/
+        return attacked;
     }
 
     public bool IsEnemyInLineOfSight(GameObject enemy)
@@ -403,6 +431,9 @@ public class Player : MonoBehaviour
 
     public bool InRange(Vector3 start, Vector3 goal)
     {
+        int distance = (int)(Mathf.Max(Mathf.Abs(start.x - goal.x), Mathf.Abs(start.y - goal.y)));
+        Debug.Log("target is this distance away: " + distance);
+        Debug.Log("range is: ");
         return (int)(Mathf.Max(Mathf.Abs(start.x - goal.x), Mathf.Abs(start.y - goal.y))) <= range;
     }
 }

@@ -1189,10 +1189,10 @@ public class World : MonoBehaviour
     void Update()
     {
         //Debug.Log(world);
-        /* if (tileMap.GetTile(tileMap.WorldToCell(turnHandler.activePlayer.transform.position)).name.Contains("win"))
+        if (world.GetTile(world.WorldToCell(turnHandler.activePlayer.transform.position)).name.Contains("win"))
          {
-             SceneManager.LoadScene("End_Scene", LoadSceneMode.Single);
-         }*/
+             SceneManager.LoadScene("Win_Scene", LoadSceneMode.Single);
+         }
         activePlayerPos = new Vector3(Mathf.Round(turnHandler.activePlayer.transform.position.x * 10) / 10, Mathf.Round(turnHandler.activePlayer.transform.position.y * 10) / 10, zAxis);
         leftWall = RoundOffset(turnHandler.activePlayer.prevRoom.startX - 1);
         rightWall = RoundOffset(turnHandler.activePlayer.prevRoom.startX + 7);

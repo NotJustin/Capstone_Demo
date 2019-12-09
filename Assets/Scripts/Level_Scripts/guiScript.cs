@@ -38,10 +38,11 @@ public class guiScript : MonoBehaviour
         style.normal.textColor = Color.white;
         spriteRenderer = GameObject.FindWithTag("ActivePlayerSprite").GetComponent<SpriteRenderer>();
         spriteRenderer.size = new Vector2(spriteRenderer.size.x / 3, spriteRenderer.size.y / 3);
-        hand = new GameObject[7];
-        for (int i = 0; i < transform.Find("Hand").childCount; i++)
+        hand = new GameObject[2];
+        Transform handTransform = transform.Find("Hand");
+        for (int i = 0; i < handTransform.childCount; i++)
         {
-            hand[i] = transform.Find("Hand").GetChild(i).gameObject;
+            hand[i] = handTransform.GetChild(i).gameObject;
         }
     }
 
@@ -55,13 +56,13 @@ public class guiScript : MonoBehaviour
                 if (!changedCardSize)
                 {
                     SpriteRenderer currentCard = hand[i].GetComponent<SpriteRenderer>();
-                    currentCard.size = new Vector2(currentCard.size.x / 2.2f, currentCard.size.y / 2.2f);
+                    currentCard.size = new Vector2(currentCard.size.x * 1.3f, currentCard.size.y * 1.3f);
                     BoxCollider2D boxCollider = (BoxCollider2D)hand[i].AddComponent<BoxCollider2D>();
                     boxCollider.size = currentCard.size;
                     hand[i].GetComponent<ClickOnCard>().card = turnHandler.activePlayer.cards[i].GetComponent<GenericCard>();
                     changedCardSize = true;
                 }
-                hand[i].transform.position = new Vector3(transform.position.x + i * 2.3f - 2.0f, transform.position.y, 0);
+                hand[i].transform.position = new Vector3(transform.position.x + i * 4.2f + 2.0f, transform.position.y - 0.5f, 0);
             }
             changedCardSize = false;
         }
@@ -87,17 +88,25 @@ public class guiScript : MonoBehaviour
         }
     }
 
+    float originalWidth = 1050.0f;
+    float originalHeight = 530.0f;
+    float x;
+    float y;
+    Vector3 scale;
     void OnGUI()
     {
+        x = Screen.width / originalWidth; // calculate hor scale
+        y = Screen.height / originalHeight; // calculate vert scale
+        scale = new Vector3(x, y, 1.0f);
+        var svMat = GUI.matrix; // save current matrix
+                                // substitute matrix - only scale is altered from standard
+        GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, scale);
         if (!turnHandler.activePlayer.moving && GUI.Button(new Rect(530, 100, 100, 40), "Toggle Mode"))
         {
             if (mode == move)
             {
                 turnHandler.activePlayer.ClearPath();
-                if (turnHandler.activePlayer.transform.gameObject.name == "Pioneer")
-                {
-                    ShowCards();
-                }
+                ShowCards();
             }
             else
             {
@@ -105,8 +114,7 @@ public class guiScript : MonoBehaviour
                 turnHandler.activePlayer.selectedEnemy = null;
                 selectedCard = null;
                 Vector3Int playerCell = turnHandler.activePlayer.world.world.WorldToCell(turnHandler.activePlayer.transform.position);
-                Debug.Log(turnHandler.activePlayer.attacked);
-                if (turnHandler.activePlayer.moves > 0 && !turnHandler.activePlayer.attacked)
+                if (turnHandler.activePlayer.moves > 0)
                 {
                     turnHandler.activePlayer.HighlightStartPosition();
                 }
@@ -141,6 +149,14 @@ public class guiScript : MonoBehaviour
         }
         else if (mode == attack && turnHandler.activePlayer != null)
         {
+            WeaponCard weapon = null;
+            if (selectedCard != null)
+            {
+                weapon = (WeaponCard)selectedCard;
+                GUI.Label(new Rect(400, 330, 200, 20), "Selected card: " + selectedCard.gameObject.name);
+                GenericCard card = selectedCard.gameObject.GetComponent<GenericCard>();
+                GUI.Label(new Rect(400, 360, 500, 30), card.text);
+            }
             if (turnHandler.activePlayer.selectedEnemy != null)
             {
                 GUI.Label(new Rect(400, 430, 200, 20), "Selected enemy: " + turnHandler.activePlayer.selectedEnemy.tag);
@@ -150,38 +166,74 @@ public class guiScript : MonoBehaviour
             }
             else
             {
-                if (selectedCard != null)
+                if (weapon != null && !weapon.aoe)
                 {
                     GUI.Label(new Rect(400, 430, 200, 20), "Choose a target on board.");
                 }
-                else
+                else if (weapon == null)
                 {
                     GUI.Label(new Rect(400, 430, 200, 20), "Choose a card to play.");
                 }
             }
-            if (selectedCard != null)
-            {
-                GUI.Label(new Rect(400, 330, 200, 20), "Selected card: " + selectedCard.gameObject.name);
-                GenericCard card = selectedCard.gameObject.GetComponent<GenericCard>();
-                GUI.Label(new Rect(400, 360, 500, 30), card.text);
-            }
-            if (GUI.Button(new Rect(640, 100, 100, 40), "Use card") && turnHandler.activePlayer.selectedEnemy != null)
+            if (GUI.Button(new Rect(640, 100, 100, 40), "Use card") && (turnHandler.activePlayer.selectedEnemy != null || (weapon != null && weapon.aoe)))
             {
                 string type = selectedCard.GetType() + "";
                 if (type == "WeaponCard")
                 {
-                    WeaponCard weapon = (WeaponCard)selectedCard;
+                    weapon = (WeaponCard)selectedCard;
                     turnHandler.activePlayer.attack = weapon.damage;
-                    if (turnHandler.activePlayer.energy >= weapon.cost && turnHandler.activePlayer.Attack(turnHandler.activePlayer.selectedEnemy))
+                    int cost = weapon.cost;
+                    int moveGain = weapon.moves;
+                    if(turnHandler.activePlayer.decreaseWeaponCost)
                     {
-                        turnHandler.activePlayer.energy -= weapon.cost;
-                        foreach (GameObject obj in hand)
+                        cost -= turnHandler.activePlayer.decreaseWeaponCostBy;
+                    }
+                    else
+                    {
+                        turnHandler.activePlayer.decreaseWeaponCostBy = 0;
+                    }
+                    if (turnHandler.activePlayer.energy >= cost)
+                    {
+                        if (weapon.aoe && turnHandler.activePlayer.AOEAttack(weapon))
                         {
-                            if (obj.GetComponent<SpriteRenderer>().sprite == weapon.sprite)
+                            turnHandler.activePlayer.energy -= cost;
+                            turnHandler.activePlayer.decreaseWeaponCost = weapon.decreaseNextWeaponCost;
+                            turnHandler.activePlayer.decreaseWeaponCostBy = weapon.decreaseNextWeaponCostBy;
+                            turnHandler.activePlayer.moves = weapon.moves;
+                            foreach (GameObject obj in hand)
                             {
-                                obj.GetComponent<SpriteRenderer>().sprite = null;
-                                Destroy(obj.GetComponent<BoxCollider2D>());
-                                weapon.used = true;
+                                if (obj.GetComponent<SpriteRenderer>().sprite == weapon.sprite)
+                                {
+                                    obj.GetComponent<SpriteRenderer>().sprite = null;
+                                    Destroy(obj.GetComponent<BoxCollider2D>());
+                                    weapon.used = true;
+                                }
+                            }
+                        }
+                        else if (turnHandler.activePlayer.Attack(weapon, turnHandler.activePlayer.selectedEnemy))
+                        {
+                            if (turnHandler.activePlayer.selectedEnemy == null)
+                            {
+                                cost -= weapon.energyGain;
+                                moveGain += weapon.moveGain;
+                            }
+                            else
+                            {
+                                turnHandler.FetchEnemyType(turnHandler.activePlayer.selectedEnemy).armor -= weapon.armorRemove;
+                            }
+                            turnHandler.activePlayer.charge += weapon.chargeGain;
+                            turnHandler.activePlayer.energy -= cost;
+                            turnHandler.activePlayer.decreaseWeaponCost = weapon.decreaseNextWeaponCost;
+                            turnHandler.activePlayer.decreaseWeaponCostBy = weapon.decreaseNextWeaponCostBy;
+                            turnHandler.activePlayer.moves = moveGain;
+                            foreach (GameObject obj in hand)
+                            {
+                                if (obj.GetComponent<SpriteRenderer>().sprite == weapon.sprite)
+                                {
+                                    obj.GetComponent<SpriteRenderer>().sprite = null;
+                                    Destroy(obj.GetComponent<BoxCollider2D>());
+                                    weapon.used = true;
+                                }
                             }
                         }
                     }
@@ -224,5 +276,6 @@ public class guiScript : MonoBehaviour
         {
             GUI.Label(new Rect(5, 180, 200, 20), "Selected: " + turnHandler.activePlayer.transform.name);
         }*/
+        GUI.matrix = svMat; // restore matrix
     }
 }
