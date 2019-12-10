@@ -77,12 +77,12 @@ public class SlingerScript : MonoBehaviour
         turnHandler = slinger.turnHandlerObj.GetComponent<Turn_Handler>();
     }
 
-    void Update()
+    /*void Update()
     {
         if (turnHandler.enemyTurn && turnHandler.activeEnemy == slinger)
         {
             slinger.UpdateRoom();
             slinger.PrimaryAttack();
         }
-    }
+    }*/
 }

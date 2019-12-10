@@ -74,7 +74,7 @@ public class Room
                 if (tiles[x, y].type == enemyOne)
                 {
                     GameObject enemy = GameObject.Instantiate(enemyData.tierOneEnemies[Random.Range(0, enemyData.tierOneEnemies.Count)]);
-                    enemy.transform.position = tiles[x, y].position;
+                    enemy.transform.position = new Vector3(enemyData.RoundOffset(tiles[x, y].position.x), enemyData.RoundOffset(tiles[x, y].position.y), tiles[x, y].position.z);
                     turnHandler.enemyList.Add(enemy);
                     enemies.Add(enemy);
                     enemy.transform.parent = enemiesObj.transform;
@@ -92,7 +92,7 @@ public class Room
                 else if (tiles[x, y].type == enemyThree)
                 {
                     GameObject enemy = GameObject.Instantiate(enemyData.tierThreeEnemies[Random.Range(0, enemyData.tierThreeEnemies.Count)]);
-                    enemy.transform.position = tiles[x, y].position;
+                    enemy.transform.position = new Vector3(enemyData.RoundOffset(tiles[x, y].position.x), enemyData.RoundOffset(tiles[x, y].position.y), tiles[x, y].position.z);
                     turnHandler.enemyList.Add(enemy);
                     enemies.Add(enemy);
                     enemy.transform.parent = enemiesObj.transform;
@@ -101,7 +101,7 @@ public class Room
                 else if (tiles[x, y].type == enemyFour)
                 {
                     GameObject enemy = GameObject.Instantiate(enemyData.tierFourEnemies[Random.Range(0, enemyData.tierFourEnemies.Count)]);
-                    enemy.transform.position = tiles[x, y].position;
+                    enemy.transform.position = new Vector3(enemyData.RoundOffset(tiles[x, y].position.x), enemyData.RoundOffset(tiles[x, y].position.y), tiles[x, y].position.z);
                     turnHandler.enemyList.Add(enemy);
                     enemies.Add(enemy);
                     enemy.transform.parent = enemiesObj.transform;

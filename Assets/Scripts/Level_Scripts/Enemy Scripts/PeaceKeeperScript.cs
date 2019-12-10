@@ -77,12 +77,12 @@ public class PeaceKeeperScript : MonoBehaviour
         turnHandler = peaceKeeper.turnHandlerObj.GetComponent<Turn_Handler>();
     }
 
-    void Update()
+    /*void Update()
     {
         if (turnHandler.enemyTurn && turnHandler.activeEnemy == peaceKeeper)
         {
             peaceKeeper.UpdateRoom();
             peaceKeeper.PrimaryAttack();
         }
-    }
+    }*/
 }

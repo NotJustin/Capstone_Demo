@@ -337,7 +337,16 @@ public class Player : MonoBehaviour
         range = card.range;
         if (IsEnemyInLineOfSight(enemyObj) && InRange(transform.position, enemyObj.transform.position))
         {
-            IEnemy enemy = turnHandler.FetchEnemyType(selectedEnemy);
+            IEnemy enemy;
+            if (selectedEnemy == null)
+            {
+                enemy = turnHandler.FetchEnemyType(enemyObj);
+            }
+            else
+            {
+                enemy = turnHandler.FetchEnemyType(selectedEnemy);
+
+            }
             int damage = attack - enemy.armor;
             if (card.usesCharge)
             {
@@ -347,11 +356,21 @@ public class Player : MonoBehaviour
             enemy.health -= damage;
             if (enemy.health <= 0)
             {
-                turnHandler.enemyList.Remove(selectedEnemy);
-                enemy.room.enemies.Remove(selectedEnemy);
-                Destroy(turnHandler.activePlayer.selectedEnemy);
-                turnHandler.activeEnemy = null;
-                selectedEnemy = null;
+                if (selectedEnemy == null)
+                {
+                    turnHandler.enemyList.Remove(enemyObj);
+                    enemy.room.enemies.Remove(enemyObj);
+                    Destroy(enemyObj);
+                    turnHandler.activeEnemy = null;
+                }
+                else
+                {
+                    turnHandler.enemyList.Remove(selectedEnemy);
+                    enemy.room.enemies.Remove(selectedEnemy);
+                    Destroy(enemyObj);
+                    turnHandler.activeEnemy = null;
+                    selectedEnemy = null;
+                }
             }
             attacked = true;
             return true;
@@ -362,6 +381,10 @@ public class Player : MonoBehaviour
     public bool AOEAttack(WeaponCard card)
     {
         bool attacked = false;
+        if (selectedEnemy != null)
+        {
+            selectedEnemy = null;
+        }
         for (int i = 0; i < room.enemies.Count; i++)
         {
             if (room.enemies[i] != null && Attack(card, room.enemies[i]))
@@ -431,9 +454,6 @@ public class Player : MonoBehaviour
 
     public bool InRange(Vector3 start, Vector3 goal)
     {
-        int distance = (int)(Mathf.Max(Mathf.Abs(start.x - goal.x), Mathf.Abs(start.y - goal.y)));
-        Debug.Log("target is this distance away: " + distance);
-        Debug.Log("range is: ");
         return (int)(Mathf.Max(Mathf.Abs(start.x - goal.x), Mathf.Abs(start.y - goal.y))) <= range;
     }
 }

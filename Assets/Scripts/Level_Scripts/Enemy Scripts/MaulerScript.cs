@@ -77,12 +77,12 @@ public class MaulerScript : MonoBehaviour
         turnHandler = mauler.turnHandlerObj.GetComponent<Turn_Handler>();
     }
 
-    void Update()
+    /*void Update()
     {
         if (turnHandler.enemyTurn && turnHandler.activeEnemy == mauler)
         {
             mauler.UpdateRoom();
             mauler.PrimaryAttack();
         }
-    }
+    }*/
 }

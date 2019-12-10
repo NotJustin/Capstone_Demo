@@ -62,7 +62,7 @@ public class guiScript : MonoBehaviour
                     hand[i].GetComponent<ClickOnCard>().card = turnHandler.activePlayer.cards[i].GetComponent<GenericCard>();
                     changedCardSize = true;
                 }
-                hand[i].transform.position = new Vector3(transform.position.x + i * 4.2f + 2.0f, transform.position.y - 0.5f, 0);
+                hand[i].transform.position = new Vector3(transform.position.x + i * 4.2f + 4.0f, transform.position.y - 0.5f, 0);
             }
             changedCardSize = false;
         }
@@ -127,6 +127,7 @@ public class guiScript : MonoBehaviour
             if (turnHandler.playerTurn)
             {
                 SetCardsToUnused();
+                HideCards();
                 mode = move;
                 turnHandler.activePlayer.finished = true;
                 turnHandler.activePlayer.turnStarted = false;
@@ -153,16 +154,18 @@ public class guiScript : MonoBehaviour
             if (selectedCard != null)
             {
                 weapon = (WeaponCard)selectedCard;
-                GUI.Label(new Rect(400, 330, 200, 20), "Selected card: " + selectedCard.gameObject.name);
+                GUI.Label(new Rect(400, 260, 200, 50), "Selected card: " + selectedCard.gameObject.name);
                 GenericCard card = selectedCard.gameObject.GetComponent<GenericCard>();
-                GUI.Label(new Rect(400, 360, 500, 30), card.text);
+                GUI.Label(new Rect(400, 290, 200, 100), card.text);
             }
             if (turnHandler.activePlayer.selectedEnemy != null)
             {
-                GUI.Label(new Rect(400, 430, 200, 20), "Selected enemy: " + turnHandler.activePlayer.selectedEnemy.tag);
                 IEnemy enemy = turnHandler.FetchEnemyType(turnHandler.activePlayer.selectedEnemy);
+                string name = turnHandler.activePlayer.selectedEnemy.name;
+                GUI.Label(new Rect(400, 430, 200, 20), "Selected enemy: " + name.Substring(0, name.Length - 7));
                 GUI.Label(new Rect(400, 460, 200, 20), "Health: " + enemy.health);
-                GUI.Label(new Rect(500, 460, 200, 50), "Ability: " + enemy.text);
+                GUI.Label(new Rect(500, 460, 200, 20), "Armor: " + enemy.armor);
+                GUI.Label(new Rect(400, 490, 400, 50), "Ability: " + enemy.text);
             }
             else
             {
@@ -196,10 +199,20 @@ public class guiScript : MonoBehaviour
                     {
                         if (weapon.aoe && turnHandler.activePlayer.AOEAttack(weapon))
                         {
+                            if (turnHandler.activePlayer.selectedEnemy == null)
+                            {
+                                cost -= weapon.energyGain;
+                                moveGain += weapon.moveGain;
+                            }
+                            else
+                            {
+                                turnHandler.FetchEnemyType(turnHandler.activePlayer.selectedEnemy).armor -= weapon.armorRemove;
+                            }
+                            turnHandler.activePlayer.charge += weapon.chargeGain;
                             turnHandler.activePlayer.energy -= cost;
                             turnHandler.activePlayer.decreaseWeaponCost = weapon.decreaseNextWeaponCost;
                             turnHandler.activePlayer.decreaseWeaponCostBy = weapon.decreaseNextWeaponCostBy;
-                            turnHandler.activePlayer.moves = weapon.moves;
+                            turnHandler.activePlayer.moves = moveGain;
                             foreach (GameObject obj in hand)
                             {
                                 if (obj.GetComponent<SpriteRenderer>().sprite == weapon.sprite)

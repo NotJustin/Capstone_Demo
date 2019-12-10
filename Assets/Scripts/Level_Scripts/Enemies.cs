@@ -181,46 +181,65 @@ public abstract class IEnemy
         return false;
     }
 
+    public bool DoesTileHaveEnemy(Vector3Int neighbor)
+    {
+        foreach (GameObject enemy in room.enemies)
+        {
+            if (world.world.WorldToCell(enemy.transform.position) == neighbor)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     void PopulateAdjacentArray(List<Tile> adjacent, Tile tile)
     {
         TileBase neighbor;
-        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x - 1, tile.cell.y, 0));
-        if (tile.cell.x > tile.room.startX && neighbor != null && !neighbor.name.Contains("wall"))
+        Vector3Int neighborCell = new Vector3Int(tile.cell.x - 1, tile.cell.y, 0);
+        neighbor = world.world.GetTile(neighborCell);
+        if (tile.cell.x > tile.room.startX && neighbor != null && !neighbor.name.Contains("wall") && !DoesTileHaveEnemy(neighborCell))
         {
             adjacent.Add(tile.room.tiles[tile.cell.x - 1 - tile.room.startX, tile.cell.y - tile.room.startY]);
         }
-        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x + 1, tile.cell.y, 0));
-        if (tile.cell.x < tile.room.startX + 6 && neighbor != null && !neighbor.name.Contains("wall"))
+        neighborCell = new Vector3Int(tile.cell.x + 1, tile.cell.y, 0);
+        neighbor = world.world.GetTile(neighborCell);
+        if (tile.cell.x < tile.room.startX + 6 && neighbor != null && !neighbor.name.Contains("wall") && !DoesTileHaveEnemy(neighborCell))
         {
             adjacent.Add(tile.room.tiles[tile.cell.x + 1 - tile.room.startX, tile.cell.y - tile.room.startY]);
         }
-        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x, tile.cell.y + 1, 0));
-        if (tile.cell.y < tile.room.startY + 6 && neighbor != null && !neighbor.name.Contains("wall"))
+        neighborCell = new Vector3Int(tile.cell.x, tile.cell.y + 1, 0);
+        neighbor = world.world.GetTile(neighborCell);
+        if (tile.cell.y < tile.room.startY + 6 && neighbor != null && !neighbor.name.Contains("wall") && !DoesTileHaveEnemy(neighborCell))
         {
             adjacent.Add(tile.room.tiles[tile.cell.x - tile.room.startX, tile.cell.y + 1 - tile.room.startY]);
         }
-        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x, tile.cell.y - 1, 0));
-        if (tile.cell.y > tile.room.startY && neighbor != null && !neighbor.name.Contains("wall"))
+        neighborCell = new Vector3Int(tile.cell.x, tile.cell.y - 1, 0);
+        neighbor = world.world.GetTile(neighborCell);
+        if (tile.cell.y > tile.room.startY && neighbor != null && !neighbor.name.Contains("wall") && !DoesTileHaveEnemy(neighborCell))
         {
             adjacent.Add(tile.room.tiles[tile.cell.x - tile.room.startX, tile.cell.y - 1 - tile.room.startY]);
         }
-        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x - 1, tile.cell.y - 1, 0));
-        if (tile.cell.x > tile.room.startX && tile.cell.y > tile.room.startY && neighbor != null && !neighbor.name.Contains("wall"))
+        neighborCell = new Vector3Int(tile.cell.x - 1, tile.cell.y - 1, 0);
+        neighbor = world.world.GetTile(neighborCell);
+        if (tile.cell.x > tile.room.startX && tile.cell.y > tile.room.startY && neighbor != null && !neighbor.name.Contains("wall") && !DoesTileHaveEnemy(neighborCell))
         {
             adjacent.Add(tile.room.tiles[tile.cell.x - 1 - tile.room.startX, tile.cell.y - 1 - tile.room.startY]);
         }
-        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x + 1, tile.cell.y - 1, 0));
-        if (tile.cell.x < tile.room.startX + 6 && tile.cell.y > tile.room.startY && neighbor != null && !neighbor.name.Contains("wall"))
+        neighborCell = new Vector3Int(tile.cell.x + 1, tile.cell.y - 1, 0);
+        neighbor = world.world.GetTile(neighborCell);
+        if (tile.cell.x < tile.room.startX + 6 && tile.cell.y > tile.room.startY && neighbor != null && !neighbor.name.Contains("wall") && !DoesTileHaveEnemy(neighborCell))
         {
             adjacent.Add(tile.room.tiles[tile.cell.x + 1 - tile.room.startX, tile.cell.y - 1 - tile.room.startY]);
         }
-        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x - 1, tile.cell.y + 1, 0));
-        if (tile.cell.x > tile.room.startX && tile.cell.y < tile.room.startY + 6 && neighbor != null && !neighbor.name.Contains("wall"))
+        neighborCell = new Vector3Int(tile.cell.x - 1, tile.cell.y + 1, 0);
+        neighbor = world.world.GetTile(neighborCell);
+        if (tile.cell.x > tile.room.startX && tile.cell.y < tile.room.startY + 6 && neighbor != null && !neighbor.name.Contains("wall") && !DoesTileHaveEnemy(neighborCell))
         {
             adjacent.Add(tile.room.tiles[tile.cell.x - 1 - tile.room.startX, tile.cell.y + 1 - tile.room.startY]);
         }
-        neighbor = world.world.GetTile(new Vector3Int(tile.cell.x + 1, tile.cell.y + 1, 0));
-        if (tile.cell.x < tile.room.startX + 6 && tile.cell.y < tile.room.startY + 6 && neighbor != null && !neighbor.name.Contains("wall"))
+        neighborCell = new Vector3Int(tile.cell.x + 1, tile.cell.y + 1, 0);
+        neighbor = world.world.GetTile(neighborCell);
+        if (tile.cell.x < tile.room.startX + 6 && tile.cell.y < tile.room.startY + 6 && neighbor != null && !neighbor.name.Contains("wall") && !DoesTileHaveEnemy(neighborCell))
         {
             adjacent.Add(tile.room.tiles[tile.cell.x + 1 - tile.room.startX, tile.cell.y + 1 - tile.room.startY]);
         }

@@ -92,6 +92,11 @@ public class Turn_Handler : MonoBehaviour
         }
         if (playerTurn)
         {
+            /*Debug.Log("all enemies count: " + enemyList.Count);
+            if (activePlayer.room != null)
+            {
+                Debug.Log("room enemies count: " + activePlayer.room.enemies.Count);
+            }*/
             if (!activePlayer.turnStarted && AllPlayersFinished())
             {
                 ResetAllPlayerFinishedStates();
@@ -107,26 +112,44 @@ public class Turn_Handler : MonoBehaviour
         }
         else if(enemyTurn)
         {
-            if (enemyList.Count > 0)
+            Debug.Log("Enemy turn");
+            if(activeEnemy != null)
             {
-                activeEnemy = FetchEnemyType(enemyList[0]);
+                Debug.Log("moving: " + activeEnemy.awaitMovement);
+                Debug.Log("turn started: " + activeEnemy.turnStarted);
             }
             else
             {
+                Debug.Log("activeEnemy is null");
+            }
+            if (enemyList.Count > 0)
+            {
+                Debug.Log("setting enemy");
+                activeEnemy = FetchEnemyType(enemyList[0]);
+                Debug.Log(activeEnemy);
+                activeEnemy.turnStarted = true;
+                activeEnemy.UpdateRoom();
+                activeEnemy.PrimaryAttack();
+                activeEnemy.turnStarted = false;
+            }
+            else
+            {
+                Debug.Log("no enemies exist");
                 enemyTurn = false;
                 playerTurn = true;
             }
             if (enemyList.Count > 0 && !activeEnemy.awaitMovement && !activeEnemy.turnStarted)
             {
+                Debug.Log("changing enemy turn");
                 enemyList.Add(enemyList[0]);
                 enemyList.RemoveAt(0);
                 activeEnemy = FetchEnemyType(enemyList[0]);
+                Debug.Log("active enemy is:... " + activeEnemy);
             }
         }
     }
     public IEnemy FetchEnemyType(GameObject enemy)
     {
-        Debug.Log(enemy.name);
         if (enemy.name.Contains("Scuttler"))
         {
             return enemy.GetComponent<ScuttlerScript>().scuttler;

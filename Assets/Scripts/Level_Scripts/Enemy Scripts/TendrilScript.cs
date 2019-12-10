@@ -77,12 +77,12 @@ public class TendrilScript : MonoBehaviour
         turnHandler = tendril.turnHandlerObj.GetComponent<Turn_Handler>();
     }
 
-    void Update()
+    /*void Update()
     {
         if (turnHandler.enemyTurn && turnHandler.activeEnemy == tendril)
         {
             tendril.UpdateRoom();
             tendril.PrimaryAttack();
         }
-    }
+    }*/
 }

@@ -77,12 +77,14 @@ public class ScuttlerScript : MonoBehaviour
         turnHandler = scuttler.turnHandlerObj.GetComponent<Turn_Handler>();
     }
 
-    void Update()
+    /*void Update()
     {
         if (turnHandler.enemyTurn && turnHandler.activeEnemy == scuttler)
         {
+            Debug.Log("my turn");
+            scuttler.turnStarted = true;
             scuttler.UpdateRoom();
             scuttler.PrimaryAttack();
         }
-    }
+    }*/
 }

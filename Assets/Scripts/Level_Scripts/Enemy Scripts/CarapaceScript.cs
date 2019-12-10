@@ -77,12 +77,12 @@ public class CarapaceScript : MonoBehaviour
         turnHandler = carapace.turnHandlerObj.GetComponent<Turn_Handler>();
     }
 
-    void Update()
+    /*void Update()
     {
         if (turnHandler.enemyTurn && turnHandler.activeEnemy == carapace)
         {
             carapace.UpdateRoom();
             carapace.PrimaryAttack();
         }
-    }
+    }*/
 }
